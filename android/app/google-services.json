@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "302566893879",
+    "firebase_url": "https://hydrosense-13c89-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "hydrosense-13c89",
+    "storage_bucket": "hydrosense-13c89.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:302566893879:android:d6a316008893c14fa152b2",
+        "android_client_info": {
+          "package_name": "com.example.hydrosense"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_0FMOD4hSaCc5-I0AZgGg_PcX8ehOGJs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
