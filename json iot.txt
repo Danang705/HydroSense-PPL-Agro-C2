@@ -1,0 +1,16 @@
+{
+  "device_id": "meja_001",
+  "nama": "Meja 1",
+  "ph": 6.2,
+  "nutrisi": 950,
+  "volume": 89
+}
+
+set
+
+{"id":"Meja 1","device_id":"meja_001","ph_min":5.5,"ph_max":6.5,"ppm_min":800,"ppm_max":1200}
+
+
+dosis 
+
+{"id":"Meja 1","device_id":"meja_001","ph_min":5.5,"ph_max":6.5,"ppm_min":800,"ppm_max":1200,"nutrisi_dosis_ml":20,"ph_up_dosis_ml":5,"ph_down_dosis_ml":5}
