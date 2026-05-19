@@ -39,19 +39,23 @@ HydroSense dirancang sebagai sistem monitoring hidroponik cerdas yang menghubung
 
 ![Dashboard](dashboard.png)
 
-### 3. Detail Monitoring
+### 2. Detail Monitoring
 
-![Detail Monitoring](docs/screenshots/detail-monitoring.png)
+![Detail Monitoring](detailmeja.png)
 
-### 4. Pengaturan Standar dan Dosis IoT
+### 3. Pengaturan Standar Meja
 
-![Detail Setting](docs/screenshots/detail-setting.png)
+![Detail Setting](pengaturanmeja.png)
+
+### 3. Pengaturan Dosis Meja
+
+![Detail Setting](pengaturandosis.png)
 
 ### 5. Riwayat Aktivitas
 
-![History Page](docs/screenshots/history.png)
+![History Page](riwayat.png)
 
 ### 6. Profile Page
 
-![Profile Page](docs/screenshots/profile.png)
+![Profile Page](profil.png)
 
