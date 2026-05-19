@@ -33,3 +33,25 @@ HydroSense dirancang sebagai sistem monitoring hidroponik cerdas yang menghubung
 - HiveMQ Cloud
 - Android
 
+## Dokumentasi Tampilan Aplikasi
+
+### 1. Dashboard Monitoring
+
+![Dashboard](dashboard.png)
+
+### 3. Detail Monitoring
+
+![Detail Monitoring](docs/screenshots/detail-monitoring.png)
+
+### 4. Pengaturan Standar dan Dosis IoT
+
+![Detail Setting](docs/screenshots/detail-setting.png)
+
+### 5. Riwayat Aktivitas
+
+![History Page](docs/screenshots/history.png)
+
+### 6. Profile Page
+
+![Profile Page](docs/screenshots/profile.png)
+
