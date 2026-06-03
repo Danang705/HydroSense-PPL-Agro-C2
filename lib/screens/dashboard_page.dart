@@ -35,6 +35,10 @@ class _DashboardPageState extends State<DashboardPage>
     return 'Admin';
   }
 
+  String _formatPh(double ph) {
+    return ph.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -166,7 +170,7 @@ class _DashboardPageState extends State<DashboardPage>
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: Colors.grey.withValues(alpha: 0.2),
+                color: Colors.grey.withOpacity(0.2),
               ),
             ),
             child: Row(
@@ -345,7 +349,7 @@ class _DashboardPageState extends State<DashboardPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.1),
+          color: Colors.grey.withOpacity(0.1),
         ),
       ),
       child: Column(
@@ -367,8 +371,8 @@ class _DashboardPageState extends State<DashboardPage>
                 ),
                 decoration: BoxDecoration(
                   color: meja.isNormal
-                      ? const Color(0xFF00C48C).withValues(alpha: 0.1)
-                      : const Color(0xFFE54D50).withValues(alpha: 0.1),
+                      ? const Color(0xFF00C48C).withOpacity(0.1)
+                      : const Color(0xFFE54D50).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -388,7 +392,7 @@ class _DashboardPageState extends State<DashboardPage>
           _buildDataRow(
             icon: Icons.eco_outlined,
             label: 'pH Air',
-            value: '${meja.ph}',
+            value: _formatPh(meja.ph),
           ),
           const SizedBox(height: 12),
           _buildDataRow(
@@ -420,7 +424,7 @@ class _DashboardPageState extends State<DashboardPage>
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.2),
+                  color: Colors.grey.withOpacity(0.2),
                 ),
                 color: Colors.transparent,
               ),
