@@ -45,6 +45,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       return;
     }
 
+    if (!email.contains('@')) {
+      setState(() {
+        _errorMessage = 'Format email tidak valid.';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -61,7 +68,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tautan reset password telah dikirim ke email kamu'),
+          content: Text('Tautan reset password telah dikirim ke email kamu.'),
           backgroundColor: Color(0xFF1E5C3A),
         ),
       );
@@ -93,7 +100,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F5),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,6 +164,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         child: TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) {
+                            if (!_isLoading) {
+                              _onResetPasswordPressed();
+                            }
+                          },
                           style: const TextStyle(
                             fontSize: 15,
                             color: Color(0xFF1A1A2E),
@@ -252,6 +265,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                 ),
               ),
+
+              const SizedBox(height: 32),
             ],
           ),
         ),

@@ -9,7 +9,7 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nicknameController = TextEditingController();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -19,21 +19,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.initState();
 
     final User? user = FirebaseAuth.instance.currentUser;
-    _nameController.text = user?.displayName ?? '';
+    _nicknameController.text = user?.displayName ?? '';
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _nicknameController.dispose();
     super.dispose();
   }
 
-  Future<void> _saveProfile() async {
-    final String name = _nameController.text.trim();
+  Future<void> _saveNickname() async {
+    final String nickname = _nicknameController.text.trim();
 
-    if (name.isEmpty) {
+    if (nickname.isEmpty) {
       setState(() {
-        _errorMessage = 'Nama tidak boleh kosong.';
+        _errorMessage = 'Nickname tidak boleh kosong.';
+      });
+      return;
+    }
+
+    if (nickname.length < 3) {
+      setState(() {
+        _errorMessage = 'Nickname minimal 3 karakter.';
       });
       return;
     }
@@ -53,7 +60,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         );
       }
 
-      await user.updateDisplayName(name);
+      await user.updateDisplayName(nickname);
       await FirebaseAuth.instance.currentUser?.reload();
 
       if (!mounted) return;
@@ -64,7 +71,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Profil berhasil diperbarui'),
+          content: Text('Nickname berhasil diperbarui'),
           backgroundColor: Color(0xFF1E5C3A),
         ),
       );
@@ -82,7 +89,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Gagal memperbarui profil.';
+        _errorMessage = 'Gagal memperbarui nickname.';
       });
     }
   }
@@ -90,19 +97,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String _getFirebaseErrorMessage(String code) {
     switch (code) {
       case 'requires-recent-login':
-        return 'Silakan login ulang sebelum mengubah profil.';
+        return 'Silakan login ulang sebelum mengubah nickname.';
       case 'network-request-failed':
         return 'Tidak ada koneksi internet.';
+      case 'user-not-found':
+        return 'User tidak ditemukan.';
       default:
-        return 'Gagal memperbarui profil.';
+        return 'Gagal memperbarui nickname.';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
-    final String email = user?.email ?? 'Email tidak tersedia';
-
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F5),
       appBar: AppBar(
@@ -118,7 +124,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Edit Profil',
+          'Edit Nickname',
           style: TextStyle(
             color: Color(0xFF1A1A2E),
             fontWeight: FontWeight.w800,
@@ -154,18 +160,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       color: Color(0xFF1E5C3A),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  _buildInputField(
-                    label: 'Nama Tampilan',
-                    controller: _nameController,
-                    hint: 'Masukkan nama tampilan',
-                    icon: Icons.person_outline,
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Ubah Nickname',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A2E),
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  _buildReadOnlyField(
-                    label: 'Email',
-                    value: email,
-                    icon: Icons.email_outlined,
+                  const SizedBox(height: 6),
+                  Text(
+                    'Nickname akan tampil pada halaman dashboard dan profil.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 26),
+                  _buildInputField(
+                    label: 'Nickname',
+                    controller: _nicknameController,
+                    hint: 'Masukkan nickname baru',
+                    icon: Icons.badge_outlined,
                   ),
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 18),
@@ -189,7 +208,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveProfile,
+                      onPressed: _isLoading ? null : _saveNickname,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1E5C3A),
                         foregroundColor: Colors.white,
@@ -209,7 +228,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               ),
                             )
                           : const Text(
-                              'Simpan Perubahan',
+                              'Simpan Nickname',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -233,6 +252,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }) {
     return TextField(
       controller: controller,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) {
+        if (!_isLoading) {
+          _saveNickname();
+        }
+      },
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -243,26 +268,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
           borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
         ),
-      ),
-    );
-  }
-
-  Widget _buildReadOnlyField({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return TextField(
-      readOnly: true,
-      controller: TextEditingController(text: value),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        filled: true,
-        fillColor: const Color(0xFFF8F9FA),
-        border: OutlineInputBorder(
+        focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(
+            color: Color(0xFF1E5C3A),
+            width: 1.4,
+          ),
         ),
       ),
     );

@@ -679,7 +679,7 @@ class _DetailPageState extends State<DetailPage>
         ),
         _buildIndicatorCard(
           title: 'VOLUME',
-          value: '${meja.volume}%',
+          value: '${meja.volume.toStringAsFixed(2)} m',
           status: 'Normal',
           color: Colors.green,
         ),

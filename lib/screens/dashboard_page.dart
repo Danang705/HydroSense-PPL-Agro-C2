@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 import '../controllers/dashboard_controller.dart';
@@ -39,6 +40,116 @@ class _DashboardPageState extends State<DashboardPage>
     return ph.toStringAsFixed(1);
   }
 
+  Map<String, _DashboardDeviceSetting> _parseDeviceSettings(dynamic value) {
+    final Map<String, _DashboardDeviceSetting> result = {};
+
+    if (value is! Map) {
+      return result;
+    }
+
+    value.forEach((key, item) {
+      if (item is Map) {
+        final String deviceId = key.toString();
+
+        result[deviceId] = _DashboardDeviceSetting(
+          phMin: _toDouble(item['ph_min'], fallback: 5.5),
+          phMax: _toDouble(item['ph_max'], fallback: 6.5),
+          ppmMin: _toInt(item['ppm_min'], fallback: 800),
+          ppmMax: _toInt(item['ppm_max'], fallback: 1200),
+        );
+      }
+    });
+
+    return result;
+  }
+
+  _DashboardDeviceSetting _getSettingForMeja(
+    MonitoringLog meja,
+    Map<String, _DashboardDeviceSetting> settings,
+  ) {
+    return settings[meja.deviceId] ??
+        settings[meja.nama] ??
+        const _DashboardDeviceSetting(
+          phMin: 5.5,
+          phMax: 6.5,
+          ppmMin: 800,
+          ppmMax: 1200,
+        );
+  }
+
+  bool _isPhNormal(
+    MonitoringLog meja,
+    Map<String, _DashboardDeviceSetting> settings,
+  ) {
+    final _DashboardDeviceSetting setting = _getSettingForMeja(meja, settings);
+
+    return meja.ph >= setting.phMin && meja.ph <= setting.phMax;
+  }
+
+  bool _isNutrisiNormal(
+    MonitoringLog meja,
+    Map<String, _DashboardDeviceSetting> settings,
+  ) {
+    final _DashboardDeviceSetting setting = _getSettingForMeja(meja, settings);
+
+    return meja.nutrisi >= setting.ppmMin && meja.nutrisi <= setting.ppmMax;
+  }
+
+  bool _isVolumeNormal(MonitoringLog meja) {
+    // Di DetailPage volume saat ini masih dianggap normal karena belum ada
+    // setting batas volume. Jadi dashboard juga mengikuti DetailPage.
+    return true;
+  }
+
+  bool _isMejaNormal(
+    MonitoringLog meja,
+    Map<String, _DashboardDeviceSetting> settings,
+  ) {
+    final bool phNormal = _isPhNormal(meja, settings);
+    final bool nutrisiNormal = _isNutrisiNormal(meja, settings);
+    final bool volumeNormal = _isVolumeNormal(meja);
+
+    return phNormal && nutrisiNormal && volumeNormal;
+  }
+
+  int _toInt(
+    dynamic value, {
+    required int fallback,
+  }) {
+    if (value == null) return fallback;
+
+    if (value is int) return value;
+
+    if (value is double) return value.toInt();
+
+    if (value is num) return value.toInt();
+
+    if (value is String) {
+      return int.tryParse(value) ?? double.tryParse(value)?.toInt() ?? fallback;
+    }
+
+    return fallback;
+  }
+
+  double _toDouble(
+    dynamic value, {
+    required double fallback,
+  }) {
+    if (value == null) return fallback;
+
+    if (value is double) return value;
+
+    if (value is int) return value.toDouble();
+
+    if (value is num) return value.toDouble();
+
+    if (value is String) {
+      return double.tryParse(value) ?? fallback;
+    }
+
+    return fallback;
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -46,40 +157,59 @@ class _DashboardPageState extends State<DashboardPage>
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F5),
       body: SafeArea(
-        child: StreamBuilder<List<MonitoringLog>>(
-          stream: _mqttController.getMonitoringLogs(),
-          initialData: const [],
-          builder: (context, snapshot) {
-            final List<MonitoringLog> allMeja = snapshot.data ?? [];
+        child: StreamBuilder<DatabaseEvent>(
+          stream: FirebaseDatabase.instance.ref('device_settings').onValue,
+          builder: (context, settingSnapshot) {
+            final Map<String, _DashboardDeviceSetting> deviceSettings =
+                _parseDeviceSettings(settingSnapshot.data?.snapshot.value);
 
-            final int normalCount =
-                allMeja.where((meja) => meja.isNormal).length;
-            final int warningCount =
-                allMeja.where((meja) => !meja.isNormal).length;
+            return StreamBuilder<List<MonitoringLog>>(
+              stream: _mqttController.getMonitoringLogs(),
+              initialData: const [],
+              builder: (context, snapshot) {
+                final List<MonitoringLog> allMeja = snapshot.data ?? [];
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 12),
-                _buildMqttStatusCard(),
-                const SizedBox(height: 12),
-                _buildSummaryRow(normalCount, warningCount),
-                const SizedBox(height: 24),
-                _buildSectionTitle(),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: allMeja.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          itemCount: allMeja.length,
-                          itemBuilder: (context, index) {
-                            return _buildMejaCard(allMeja[index]);
-                          },
-                        ),
-                ),
-              ],
+                final int normalCount = allMeja
+                    .where((meja) => _isMejaNormal(meja, deviceSettings))
+                    .length;
+
+                final int warningCount = allMeja
+                    .where((meja) => !_isMejaNormal(meja, deviceSettings))
+                    .length;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 12),
+                    _buildMqttStatusCard(),
+                    const SizedBox(height: 12),
+                    _buildSummaryRow(normalCount, warningCount),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle(),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: allMeja.isEmpty
+                          ? _buildEmptyState()
+                          : ListView.builder(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24),
+                              itemCount: allMeja.length,
+                              itemBuilder: (context, index) {
+                                final MonitoringLog meja = allMeja[index];
+                                final bool isNormal =
+                                    _isMejaNormal(meja, deviceSettings);
+
+                                return _buildMejaCard(
+                                  meja: meja,
+                                  isNormal: isNormal,
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
@@ -170,7 +300,7 @@ class _DashboardPageState extends State<DashboardPage>
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
             ),
             child: Row(
@@ -341,7 +471,10 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  Widget _buildMejaCard(MonitoringLog meja) {
+  Widget _buildMejaCard({
+    required MonitoringLog meja,
+    required bool isNormal,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
@@ -349,7 +482,7 @@ class _DashboardPageState extends State<DashboardPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.grey.withOpacity(0.1),
+          color: Colors.grey.withValues(alpha: 0.1),
         ),
       ),
       child: Column(
@@ -370,15 +503,15 @@ class _DashboardPageState extends State<DashboardPage>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: meja.isNormal
-                      ? const Color(0xFF00C48C).withOpacity(0.1)
-                      : const Color(0xFFE54D50).withOpacity(0.1),
+                  color: isNormal
+                      ? const Color(0xFF00C48C).withValues(alpha: 0.1)
+                      : const Color(0xFFE54D50).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  meja.isNormal ? 'NORMAL' : 'TIDAK NORMAL',
+                  isNormal ? 'NORMAL' : 'TIDAK NORMAL',
                   style: TextStyle(
-                    color: meja.isNormal
+                    color: isNormal
                         ? const Color(0xFF00C48C)
                         : const Color(0xFFE54D50),
                     fontSize: 12,
@@ -424,7 +557,7 @@ class _DashboardPageState extends State<DashboardPage>
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                 ),
                 color: Colors.transparent,
               ),
@@ -483,4 +616,18 @@ class _DashboardPageState extends State<DashboardPage>
       ],
     );
   }
+}
+
+class _DashboardDeviceSetting {
+  final double phMin;
+  final double phMax;
+  final int ppmMin;
+  final int ppmMax;
+
+  const _DashboardDeviceSetting({
+    required this.phMin,
+    required this.phMax,
+    required this.ppmMin,
+    required this.ppmMax,
+  });
 }

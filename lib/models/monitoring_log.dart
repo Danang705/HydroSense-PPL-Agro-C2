@@ -1,107 +1,204 @@
 class MonitoringLog {
-  final String id;
   final String deviceId;
-  final bool isNormal;
   final String nama;
-  final int nutrisi;
   final double ph;
+  final int nutrisi;
   final int volume;
   final String createdAt;
+  final String aksi;
 
-  const MonitoringLog({
-    required this.id,
-    required this.deviceId,
-    required this.isNormal,
-    required this.nama,
-    required this.nutrisi,
-    required this.ph,
-    required this.volume,
-    required this.createdAt,
-  });
+  MonitoringLog({
+    String? deviceId,
+    String? id,
+    String? nama,
+    String? meja,
+    double? ph,
+    double? phValue,
+    dynamic nutritionValue,
+    dynamic nutrisi,
+    dynamic waterValue,
+    dynamic volume,
+    String? createdAt,
+    String? timestamp,
+    String? aksi,
+    String? action,
+  })  : deviceId = _toStringValue(
+          deviceId ?? id,
+          fallback: 'meja_001',
+        ),
+        nama = _toStringValue(
+          nama ?? meja,
+          fallback: 'Meja 1',
+        ),
+        ph = _toDouble(
+          ph ?? phValue,
+          fallback: 0.0,
+        ),
+        nutrisi = _toInt(
+          nutrisi ?? nutritionValue,
+          fallback: 0,
+        ),
+        volume = _toInt(
+          volume ?? waterValue,
+          fallback: 0,
+        ),
+        createdAt = _toStringValue(
+          createdAt ?? timestamp,
+          fallback: '',
+        ),
+        aksi = _toStringValue(
+          aksi ?? action,
+          fallback: '',
+        );
 
-  factory MonitoringLog.fromMap(String id, Map<dynamic, dynamic> map) {
-    final double phValue = _toDouble(map['ph']);
-    final int nutrisiValue = _toInt(map['nutrisi']);
-    final int volumeValue = _toInt(map['volume']);
+  bool get isPhNormal {
+    return ph >= 5.5 && ph <= 6.5;
+  }
 
+  bool get isNutrisiNormal {
+    return nutrisi >= 800 && nutrisi <= 1200;
+  }
+
+  bool get isVolumeNormal {
+    return volume >= 20;
+  }
+
+  bool get isNormal {
+    return isPhNormal && isNutrisiNormal && isVolumeNormal;
+  }
+
+  factory MonitoringLog.fromJson(Map<dynamic, dynamic> json) {
     return MonitoringLog(
-      id: id,
-      deviceId: map['device_id']?.toString() ?? id,
-      isNormal: map['isNormal'] ?? _checkNormalStatus(
-        ph: phValue,
-        nutrisi: nutrisiValue,
+      deviceId: json['device_id'] ?? json['deviceId'] ?? json['id'],
+      nama: json['nama'] ?? json['meja'],
+      ph: _toDouble(
+        json['ph'] ?? json['ph_value'] ?? json['phValue'],
+        fallback: 0.0,
       ),
-      nama: map['nama']?.toString() ?? _formatDeviceName(id),
-      nutrisi: nutrisiValue,
-      ph: phValue,
-      volume: volumeValue,
-      createdAt: map['created_at']?.toString() ?? '',
+      nutrisi: _toInt(
+        json['nutrisi'] ??
+            json['nutrition_value'] ??
+            json['nutritionValue'],
+        fallback: 0,
+      ),
+      volume: _toInt(
+        json['volume'] ?? json['water_value'] ?? json['waterValue'],
+        fallback: 0,
+      ),
+      createdAt: _toStringValue(
+        json['created_at'] ??
+            json['createdAt'] ??
+            json['timestamp'] ??
+            json['updated_at'],
+        fallback: '',
+      ),
+      aksi: _toStringValue(
+        json['aksi'] ?? json['action'],
+        fallback: '',
+      ),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  factory MonitoringLog.fromMap(Map<dynamic, dynamic> map) {
+    return MonitoringLog.fromJson(map);
+  }
+
+  factory MonitoringLog.fromFirebase(Map<dynamic, dynamic> data) {
+    return MonitoringLog.fromJson(data);
+  }
+
+  Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'device_id': deviceId,
-      'isNormal': isNormal,
       'nama': nama,
-      'nutrisi': nutrisi,
       'ph': ph,
+      'nutrisi': nutrisi,
       'volume': volume,
       'created_at': createdAt,
+      'aksi': aksi,
     };
   }
 
-  static bool _checkNormalStatus({
-    required double ph,
-    required int nutrisi,
+  Map<String, dynamic> toFirebaseJson() {
+    return {
+      'device_id': deviceId,
+      'meja': nama,
+      'ph_value': ph,
+      'nutrition_value': nutrisi,
+      'water_value': volume,
+      'timestamp': createdAt,
+      'aksi': aksi,
+    };
+  }
+
+  MonitoringLog copyWith({
+    String? deviceId,
+    String? nama,
+    double? ph,
+    int? nutrisi,
+    int? volume,
+    String? createdAt,
+    String? aksi,
   }) {
-    final bool phNormal = ph >= 5.5 && ph <= 6.5;
-    final bool nutrisiNormal = nutrisi >= 800 && nutrisi <= 1200;
-
-    return phNormal && nutrisiNormal;
+    return MonitoringLog(
+      deviceId: deviceId ?? this.deviceId,
+      nama: nama ?? this.nama,
+      ph: ph ?? this.ph,
+      nutrisi: nutrisi ?? this.nutrisi,
+      volume: volume ?? this.volume,
+      createdAt: createdAt ?? this.createdAt,
+      aksi: aksi ?? this.aksi,
+    );
   }
 
-  static int _toInt(dynamic value) {
-    if (value == null) return 0;
+  static String _toStringValue(
+    dynamic value, {
+    required String fallback,
+  }) {
+    if (value == null) return fallback;
 
-    if (value is int) return value;
+    final String result = value.toString().trim();
 
-    if (value is double) return value.toInt();
+    if (result.isEmpty) return fallback;
 
-    if (value is String) {
-      return int.tryParse(value) ?? double.tryParse(value)?.toInt() ?? 0;
-    }
-
-    return 0;
+    return result;
   }
 
-  static double _toDouble(dynamic value) {
-    if (value == null) return 0.0;
+  static double _toDouble(
+    dynamic value, {
+    required double fallback,
+  }) {
+    if (value == null) return fallback;
 
     if (value is double) return value;
 
     if (value is int) return value.toDouble();
 
+    if (value is num) return value.toDouble();
+
     if (value is String) {
-      return double.tryParse(value) ?? 0.0;
+      return double.tryParse(value) ?? fallback;
     }
 
-    return 0.0;
+    return fallback;
   }
 
-  static String _formatDeviceName(String id) {
-    if (id.isEmpty) return 'Meja';
+  static int _toInt(
+    dynamic value, {
+    required int fallback,
+  }) {
+    if (value == null) return fallback;
 
-    final String formatted = id
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map((word) {
-          if (word.isEmpty) return word;
-          return word[0].toUpperCase() + word.substring(1);
-        })
-        .join(' ');
+    if (value is int) return value;
 
-    return formatted;
+    if (value is double) return value.round();
+
+    if (value is num) return value.round();
+
+    if (value is String) {
+      return int.tryParse(value) ?? double.tryParse(value)?.round() ?? fallback;
+    }
+
+    return fallback;
   }
 }

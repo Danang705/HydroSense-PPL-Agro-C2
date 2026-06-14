@@ -12,6 +12,7 @@ import '../models/monitoring_log.dart';
 class DashboardController {
   DashboardController._internal() {
     debugPrint('DashboardController dibuat');
+    _loadLatestSensorDataFromFirebase();
     _setupMqtt();
   }
 
@@ -29,6 +30,14 @@ class DashboardController {
 
   static const String _dataTopic = 'unej/iot/hydrosense/data';
 
+  // Hanya pakai device ini saja.
+  // Data dari meja_01 atau device lain akan diabaikan.
+  static const String _allowedDeviceId = 'meja_001';
+
+  // Simpan data terakhir ke Firebase maksimal 1 menit sekali.
+  // Kalau mau 5 menit sekali, ubah jadi 300.
+  static const int _firebaseSaveIntervalSeconds = 60;
+
   MqttServerClient? client;
 
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
@@ -40,6 +49,8 @@ class DashboardController {
       StreamController<String>.broadcast();
 
   final List<MonitoringLog> _currentLogs = [];
+
+  final Map<String, DateTime> _lastFirebaseSaveAt = {};
 
   Stream<List<MonitoringLog>> getMonitoringLogs() {
     return _logsStreamController.stream;
@@ -55,6 +66,70 @@ class DashboardController {
     if (!_statusStreamController.isClosed) {
       _statusStreamController.add(status);
     }
+  }
+
+  Future<void> _loadLatestSensorDataFromFirebase() async {
+    try {
+      final DataSnapshot snapshot = await _dbRef.child('sensor_data').get();
+
+      if (!snapshot.exists || snapshot.value is! Map) {
+        _setStatus('Firebase: Belum ada data sensor terakhir');
+        return;
+      }
+
+      final Map<dynamic, dynamic> firebaseData =
+          snapshot.value as Map<dynamic, dynamic>;
+
+      _currentLogs.clear();
+
+      firebaseData.forEach((key, value) {
+        if (value is Map) {
+          final String firebaseKey = key.toString();
+
+          final Map<String, dynamic> data = _normalizeFirebaseSensorData(
+            deviceId: firebaseKey,
+            rawData: value,
+          );
+
+          final MonitoringLog log = MonitoringLog.fromJson(data);
+
+          // Hanya ambil meja_001.
+          // Node lama seperti meja_01 akan diabaikan.
+          if (log.deviceId != _allowedDeviceId) {
+            _setStatus('Firebase: Data ${log.deviceId} diabaikan');
+            return;
+          }
+
+          _currentLogs.add(log);
+        }
+      });
+
+      _logsStreamController.add(List<MonitoringLog>.from(_currentLogs));
+
+      _setStatus('Firebase: Data sensor terakhir meja_001 berhasil dimuat');
+    } catch (e) {
+      _setStatus('Firebase: Gagal memuat sensor_data = $e');
+    }
+  }
+
+  Map<String, dynamic> _normalizeFirebaseSensorData({
+    required String deviceId,
+    required Map<dynamic, dynamic> rawData,
+  }) {
+    return {
+      'device_id': rawData['device_id'] ?? deviceId,
+      'nama': rawData['nama'] ?? 'Meja 1',
+      'ph': rawData['ph'] ?? rawData['ph_value'] ?? 0,
+      'nutrisi': rawData['nutrisi'] ?? rawData['nutrition_value'] ?? 0,
+      'volume': rawData['volume'] ??
+          rawData['volume_meter'] ??
+          rawData['water_value'] ??
+          0,
+      'created_at': rawData['created_at'] ??
+          rawData['last_update'] ??
+          rawData['timestamp'] ??
+          '',
+    };
   }
 
   Future<void> _setupMqtt() async {
@@ -194,12 +269,19 @@ class DashboardController {
 
       final Map<String, dynamic> data = decodedData;
 
-      final String deviceId = data['device_id']?.toString() ?? 'meja_001';
+      final MonitoringLog newLog = MonitoringLog.fromJson(data).copyWith(
+        createdAt: DateTime.now().toString().split('.').first,
+      );
 
-      final MonitoringLog newLog = MonitoringLog.fromMap(deviceId, data);
+      // Hanya proses data dari meja_001.
+      // Kalau ESP32/device lain mengirim meja_01, langsung diabaikan.
+      if (newLog.deviceId != _allowedDeviceId) {
+        _setStatus('MQTT: Data ${newLog.deviceId} diabaikan');
+        return;
+      }
 
       final int existingIndex = _currentLogs.indexWhere(
-        (log) => log.id == newLog.id || log.deviceId == newLog.deviceId,
+        (log) => log.deviceId == newLog.deviceId,
       );
 
       if (existingIndex != -1) {
@@ -208,43 +290,72 @@ class DashboardController {
         _currentLogs.add(newLog);
       }
 
+      // Dashboard dan DetailPage tetap realtime setiap MQTT masuk.
       _logsStreamController.add(List<MonitoringLog>.from(_currentLogs));
 
-      _updateLatestSensorData(deviceId, data);
+      // Firebase hanya disimpan sesuai interval agar tidak penuh.
+      _saveLatestSensorDataWithInterval(newLog);
     } catch (e) {
       _setStatus('MQTT: Error processing message = $e');
     }
   }
 
-  Future<void> _updateLatestSensorData(
-    String deviceId,
-    Map<String, dynamic> data,
-  ) async {
-    final String timestamp = DateTime.now().toString().split('.').first;
+  Future<void> _saveLatestSensorDataWithInterval(MonitoringLog log) async {
+    final DateTime now = DateTime.now();
+    final DateTime? lastSave = _lastFirebaseSaveAt[log.deviceId];
+
+    if (lastSave != null) {
+      final int diffSeconds = now.difference(lastSave).inSeconds;
+
+      if (diffSeconds < _firebaseSaveIntervalSeconds) {
+        _setStatus(
+          'Firebase: Skip simpan ${log.deviceId}, belum $_firebaseSaveIntervalSeconds detik',
+        );
+        return;
+      }
+    }
+
+    _lastFirebaseSaveAt[log.deviceId] = now;
+
+    await _saveLatestSensorData(log);
+  }
+
+  Future<void> _saveLatestSensorData(MonitoringLog log) async {
+    final DateTime now = DateTime.now();
+    final String timestamp = now.toString().split('.').first;
+    final int timestampMs = now.millisecondsSinceEpoch;
 
     try {
-      await _dbRef.child('sensor_data').child(deviceId).set({
-        'device_id': deviceId,
-        'nama': data['nama'] ?? deviceId,
+      await _dbRef.child('sensor_data').child(_allowedDeviceId).set({
+        'device_id': _allowedDeviceId,
+        'nama': 'Meja 1',
+
+        // Format baru.
+        'ph': log.ph,
+        'nutrisi': log.nutrisi,
+        'volume': log.volume,
+        'created_at': timestamp,
+
+        // Format lama, biar tetap cocok kalau ada page lain masih baca key lama.
+        'ph_value': log.ph,
+        'nutrition_value': log.nutrisi,
+        'water_value': log.volume,
+        'volume_meter': log.volume,
         'last_update': timestamp,
-        'nutrition_value': data['nutrisi'],
-        'ph_value': data['ph'],
-        'water_value': data['volume'],
-        'is_normal': _isSensorNormal(data),
+        'last_update_ms': timestampMs,
+
+        'is_normal': _isSensorNormal(log),
       });
 
-      _setStatus('Firebase: Data terkini berhasil diperbarui untuk $deviceId');
+      _setStatus('Firebase: Data terakhir disimpan untuk $_allowedDeviceId');
     } catch (e) {
       _setStatus('Firebase: Update sensor_data error = $e');
     }
   }
 
-  bool _isSensorNormal(Map<String, dynamic> data) {
-    final double ph = _toDouble(data['ph']);
-    final int nutrisi = _toInt(data['nutrisi']);
-
-    final bool phNormal = ph >= 5.5 && ph <= 6.5;
-    final bool nutrisiNormal = nutrisi >= 800 && nutrisi <= 1200;
+  bool _isSensorNormal(MonitoringLog log) {
+    final bool phNormal = log.ph >= 5.5 && log.ph <= 6.5;
+    final bool nutrisiNormal = log.nutrisi >= 800 && log.nutrisi <= 1200;
 
     return phNormal && nutrisiNormal;
   }
@@ -280,14 +391,21 @@ class DashboardController {
   Future<void> reconnect() async {
     _setStatus('MQTT: Reconnect manual...');
     client?.disconnect();
+
     await Future.delayed(const Duration(seconds: 1));
+
+    await _loadLatestSensorDataFromFirebase();
     await _setupMqtt();
   }
 
   void forceDisconnect() {
     client?.disconnect();
+
+    // Saat logout, tampilan dikosongkan.
+    // Data terakhir tetap aman di Firebase sensor_data/meja_001.
     _currentLogs.clear();
     _logsStreamController.add(List<MonitoringLog>.from(_currentLogs));
+
     _setStatus('MQTT: Berhenti karena logout');
   }
 
