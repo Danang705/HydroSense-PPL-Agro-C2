@@ -167,6 +167,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const Text(
                   'Profile',
                   style: TextStyle(
+                    fontFamily: 'Nunito',
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
                     color: HydroDesign.darkText,
@@ -242,7 +243,7 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: HydroDesign.primaryGreen.withValues(alpha: 0.25),
+            color: HydroDesign.primaryGreen.withValues(alpha: 0.18),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -280,6 +281,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
+                    fontFamily: 'Nunito',
                     color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
@@ -326,7 +328,7 @@ class _ProfilePageState extends State<ProfilePage> {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: const Color(0xFFE6F2F0),
+                color: HydroDesign.lightGreenBg,
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Icon(

@@ -1,31 +1,32 @@
 import 'package:flutter/material.dart';
 
 class HydroDesign {
-  // Palet Warna Utama
-  static const Color primaryGreen = Color(0xFF1E5C3A);
-  static const Color secondaryGreen = Color(0xFF2D7A50);
-  static const Color lightGreenBg = Color(0xFFF0F7F3);
-  static const Color background = Color(0xFFF4F6F5);
-  static const Color darkText = Color(0xFF1A1A2E);
-  static const Color grayText = Color(0xFF718096);
-  static const Color dangerRed = Color(0xFFE54D50);
-  static const Color warningOrange = Color(0xFFDD6B20);
-  static const Color infoTeal = Color(0xFF38B2AC);
+  // Palet Warna FitBite Theme
+  static const Color primaryGreen = Color(0xFF65A30D); // Hijau Apel Pekat (High contrast)
+  static const Color secondaryGreen = Color(0xFF84CC16); // Hijau Lime Menyala (Highlight)
+  static const Color lightGreenBg = Color(0xFFF1F8E9); // Latar Belakang Hijau Lime Halus
+  static const Color accentGreenHighlight = Color(0xFFECFDF5); // Hijau Mint Sangat Terang
+  static const Color background = Color(0xFFF9FAFB); // Latar Belakang Abu-Abu Bersih
+  static const Color darkText = Color(0xFF1F2937); // Hitam Charcoal
+  static const Color grayText = Color(0xFF6B7280); // Abu-Abu Sedang
+  static const Color dangerRed = Color(0xFFEF4444); // Merah Terang
+  static const Color warningOrange = Color(0xFFF97316); // Oranye
+  static const Color infoTeal = Color(0xFF06B6D4); // Teal
 
-  // Bayangan Lembut Premium (Soft Shadows)
+  // Bayangan Lembut Premium FitBite (Ultra Soft Shadows)
   static List<BoxShadow> get premiumShadow => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          blurRadius: 24,
-          offset: const Offset(0, 8),
+          color: Colors.black.withValues(alpha: 0.02),
+          blurRadius: 20,
+          offset: const Offset(0, 4),
         ),
       ];
 
   static List<BoxShadow> get buttonShadow => [
         BoxShadow(
-          color: primaryGreen.withValues(alpha: 0.2),
-          blurRadius: 16,
-          offset: const Offset(0, 6),
+          color: primaryGreen.withValues(alpha: 0.15),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
         ),
       ];
 
@@ -37,7 +38,7 @@ class HydroDesign {
   }) {
     return InputDecoration(
       hintText: hintText,
-      prefixIcon: Icon(prefixIcon, color: primaryGreen.withValues(alpha: 0.7)),
+      prefixIcon: Icon(prefixIcon, color: primaryGreen.withValues(alpha: 0.6)),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: Colors.white,
@@ -48,7 +49,7 @@ class HydroDesign {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.08), width: 1),
+        borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.05), width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),

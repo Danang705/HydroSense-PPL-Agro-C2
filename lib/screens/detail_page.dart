@@ -334,7 +334,7 @@ class _DetailPageState extends State<DetailPage>
 
       _showSnackBar(
         message: 'Setting dan dosis berhasil dikirim ke IoT.',
-        color: const Color(0xFF1E3A34),
+        color: HydroDesign.primaryGreen,
       );
     } catch (_) {
       _showSnackBar(
@@ -386,7 +386,7 @@ class _DetailPageState extends State<DetailPage>
 
       _showSnackBar(
         message: 'Pump manual AB Mix berhasil dikirim ke IoT.',
-        color: const Color(0xFF1E3A34),
+        color: HydroDesign.primaryGreen,
       );
     } catch (_) {
       _showSnackBar(
@@ -437,7 +437,7 @@ class _DetailPageState extends State<DetailPage>
 
       _showSnackBar(
         message: 'Pump manual $pumpLabel berhasil dikirim ke IoT.',
-        color: const Color(0xFF1E3A34),
+        color: HydroDesign.primaryGreen,
       );
     } catch (_) {
       _showSnackBar(
@@ -597,6 +597,7 @@ class _DetailPageState extends State<DetailPage>
                     Text(
                       meja.nama,
                       style: const TextStyle(
+                        fontFamily: 'Nunito',
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
                         color: HydroDesign.primaryGreen,
@@ -653,7 +654,7 @@ class _DetailPageState extends State<DetailPage>
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: const Color(0xFFECEFF0),
+              color: const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(16),
             ),
             child: TabBar(
@@ -707,10 +708,10 @@ class _DetailPageState extends State<DetailPage>
               min: 0.0,
               max: 14.0,
               unit: 'pH',
-              activeColor: phNormal ? const Color(0xFF38714F) : const Color(0xFFE54D50),
+              activeColor: phNormal ? HydroDesign.secondaryGreen : HydroDesign.dangerRed,
             ),
             status: phNormal ? 'Normal' : 'Warning',
-            color: phNormal ? const Color(0xFF38714F) : const Color(0xFFE54D50),
+            color: phNormal ? HydroDesign.secondaryGreen : HydroDesign.dangerRed,
           ),
           _buildIndicatorCard(
             title: 'PPM NUTRISI',
@@ -719,10 +720,10 @@ class _DetailPageState extends State<DetailPage>
               min: 0.0,
               max: 2000.0,
               unit: 'PPM',
-              activeColor: nutrisiNormal ? const Color(0xFF38714F) : const Color(0xFFE54D50),
+              activeColor: nutrisiNormal ? HydroDesign.secondaryGreen : HydroDesign.dangerRed,
             ),
             status: nutrisiNormal ? 'Normal' : 'Warning',
-            color: nutrisiNormal ? const Color(0xFF38714F) : const Color(0xFFE54D50),
+            color: nutrisiNormal ? HydroDesign.secondaryGreen : HydroDesign.dangerRed,
           ),
           _buildIndicatorCard(
             title: 'VOLUME',
@@ -734,7 +735,7 @@ class _DetailPageState extends State<DetailPage>
               activeColor: HydroDesign.infoTeal,
             ),
             status: 'Normal',
-            color: const Color(0xFF38714F),
+            color: HydroDesign.secondaryGreen,
           ),
           const SizedBox(height: 20),
         ],
@@ -821,163 +822,163 @@ class _DetailPageState extends State<DetailPage>
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(24),
           child: _isLoadingSetting
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(
-                    color: HydroDesign.primaryGreen,
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(
+                      color: HydroDesign.primaryGreen,
+                    ),
                   ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.settings_outlined,
+                            color: HydroDesign.primaryGreen,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Pengaturan Standar Otomatisasi',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: HydroDesign.darkText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSettingField(
+                      title: 'BATAS PH AIR',
+                      icon: Icons.eco_outlined,
+                      minController: _phMinController,
+                      maxController: _phMaxController,
+                      unit: 'pH',
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSettingField(
+                      title: 'BATAS NUTRISI',
+                      icon: Icons.bolt_outlined,
+                      minController: _ppmMinController,
+                      maxController: _ppmMaxController,
+                      unit: 'PPM',
+                    ),
+                    const SizedBox(height: 26),
+                     Divider(color: Colors.grey.withValues(alpha: 0.1)),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.science_outlined,
+                            color: HydroDesign.primaryGreen,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Dosis Otomatis Saat Tidak Normal',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: HydroDesign.darkText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Atur jumlah cairan yang diberikan perangkat ketika nilai sensor berada di luar batas normal.',
+                      style: TextStyle(
+                        color: HydroDesign.grayText,
+                        fontSize: 12,
+                        height: 1.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSingleSettingField(
+                      title: 'DOSIS NUTRISI A',
+                      icon: Icons.opacity_outlined,
+                      controller: _nutrisiADosisController,
+                      unit: 'ml',
+                      helper:
+                          'Diberikan ketika PPM kurang dari batas minimal sebagai larutan nutrisi A.',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSingleSettingField(
+                      title: 'DOSIS NUTRISI B',
+                      icon: Icons.opacity_outlined,
+                      controller: _nutrisiBDosisController,
+                      unit: 'ml',
+                      helper:
+                          'Diberikan ketika PPM kurang dari batas minimal sebagai larutan nutrisi B.',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSingleSettingField(
+                      title: 'DOSIS PH UP',
+                      icon: Icons.arrow_upward_rounded,
+                      controller: _phUpDosisController,
+                      unit: 'ml',
+                      helper: 'Diberikan ketika pH kurang dari batas minimal.',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSingleSettingField(
+                      title: 'DOSIS PH DOWN',
+                      icon: Icons.arrow_downward_rounded,
+                      controller: _phDownDosisController,
+                      unit: 'ml',
+                      helper: 'Diberikan ketika pH lebih dari batas maksimal.',
+                    ),
+                    const SizedBox(height: 26),
+                    _buildManualPumpSection(),
+                    const SizedBox(height: 40),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _sendSettingToIoT,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HydroDesign.primaryGreen,
+                          shadowColor: HydroDesign.primaryGreen.withValues(alpha: 0.25),
+                          elevation: 6,
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Text(
+                          'Simpan Standar Ke IoT',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.settings_outlined,
-                          color: HydroDesign.primaryGreen,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Text(
-                          'Pengaturan Standar Otomatisasi',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: HydroDesign.darkText,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSettingField(
-                    title: 'BATAS PH AIR',
-                    icon: Icons.eco_outlined,
-                    minController: _phMinController,
-                    maxController: _phMaxController,
-                    unit: 'pH',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSettingField(
-                    title: 'BATAS NUTRISI',
-                    icon: Icons.bolt_outlined,
-                    minController: _ppmMinController,
-                    maxController: _ppmMaxController,
-                    unit: 'PPM',
-                  ),
-                  const SizedBox(height: 26),
-                  const Divider(color: Color(0xFFECEFF0)),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.science_outlined,
-                          color: HydroDesign.primaryGreen,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Text(
-                          'Dosis Otomatis Saat Tidak Normal',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: HydroDesign.darkText,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Atur jumlah cairan yang diberikan perangkat ketika nilai sensor berada di luar batas normal.',
-                    style: TextStyle(
-                      color: HydroDesign.grayText,
-                      fontSize: 12,
-                      height: 1.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSingleSettingField(
-                    title: 'DOSIS NUTRISI A',
-                    icon: Icons.opacity_outlined,
-                    controller: _nutrisiADosisController,
-                    unit: 'ml',
-                    helper:
-                        'Diberikan ketika PPM kurang dari batas minimal sebagai larutan nutrisi A.',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSingleSettingField(
-                    title: 'DOSIS NUTRISI B',
-                    icon: Icons.opacity_outlined,
-                    controller: _nutrisiBDosisController,
-                    unit: 'ml',
-                    helper:
-                        'Diberikan ketika PPM kurang dari batas minimal sebagai larutan nutrisi B.',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSingleSettingField(
-                    title: 'DOSIS PH UP',
-                    icon: Icons.arrow_upward_rounded,
-                    controller: _phUpDosisController,
-                    unit: 'ml',
-                    helper: 'Diberikan ketika pH kurang dari batas minimal.',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSingleSettingField(
-                    title: 'DOSIS PH DOWN',
-                    icon: Icons.arrow_downward_rounded,
-                    controller: _phDownDosisController,
-                    unit: 'ml',
-                    helper: 'Diberikan ketika pH lebih dari batas maksimal.',
-                  ),
-                  const SizedBox(height: 26),
-                  _buildManualPumpSection(),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _sendSettingToIoT,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HydroDesign.primaryGreen,
-                        shadowColor: HydroDesign.primaryGreen.withValues(alpha: 0.25),
-                        elevation: 6,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: const Text(
-                        'Simpan Standar Ke IoT',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
         ),
       ),
     );
@@ -987,7 +988,7 @@ class _DetailPageState extends State<DetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(color: Color(0xFFECEFF0)),
+        Divider(color: Colors.grey.withValues(alpha: 0.1)),
         const SizedBox(height: 20),
         Row(
           children: [
@@ -1093,7 +1094,7 @@ class _DetailPageState extends State<DetailPage>
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: HydroDesign.primaryGreen.withValues(alpha: 0.25),
+              color: HydroDesign.primaryGreen.withValues(alpha: 0.18),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -1306,7 +1307,7 @@ class _DetailPageState extends State<DetailPage>
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.08), width: 1),
+              borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.05), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -1371,7 +1372,7 @@ class _DetailPageState extends State<DetailPage>
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.08), width: 1),
+                    borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.05), width: 1),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1404,7 +1405,7 @@ class _DetailPageState extends State<DetailPage>
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -1418,4 +1419,4 @@ class _DetailPageState extends State<DetailPage>
       ),
     );
   }
-}
+}

@@ -101,7 +101,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F5),
+      backgroundColor: HydroDesign.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -117,9 +117,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   height: 36,
                   alignment: Alignment.center,
                   child: const Icon(
-                    Icons.chevron_left,
+                    Icons.chevron_left_rounded,
                     size: 28,
-                    color: Color(0xFF1A1A2E),
+                    color: HydroDesign.darkText,
                   ),
                 ),
               ),
@@ -130,8 +130,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 'Lupa Password',
                 style: TextStyle(
                   fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A2E),
+                  fontWeight: FontWeight.w900,
+                  color: HydroDesign.darkText,
                 ),
               ),
 
@@ -154,8 +154,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   const Text(
                     'Email',
                     style: TextStyle(
-                      color: Color(0xFF1E5C3A),
-                      fontWeight: FontWeight.bold,
+                      color: HydroDesign.primaryGreen,
+                      fontWeight: FontWeight.w800,
                       fontSize: 13,
                     ),
                   ),
@@ -188,21 +188,22 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFEE2E2),
-                    borderRadius: BorderRadius.circular(8),
+                    color: HydroDesign.dangerRed.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
                       const Icon(
-                        Icons.error_outline,
-                        color: Color(0xFFDC2626),
+                        Icons.error_outline_rounded,
+                        color: HydroDesign.dangerRed,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
                           style: const TextStyle(
-                            color: Color(0xFFDC2626),
+                            color: HydroDesign.dangerRed,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -221,7 +222,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _onResetPasswordPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E5C3A),
+                    backgroundColor: HydroDesign.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(

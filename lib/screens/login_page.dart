@@ -104,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F5),
+      backgroundColor: HydroDesign.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -117,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A2E),
+                  color: HydroDesign.darkText,
                 ),
               ),
               const SizedBox(height: 8),
@@ -170,7 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: const Text(
                     'Lupa password?',
                     style: TextStyle(
-                      color: Color(0xFF2D7A50),
+                      color: HydroDesign.primaryGreen,
                       fontSize: 13,
                     ),
                   ),
@@ -182,21 +182,22 @@ class _LoginPageState extends State<LoginPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFEE2E2),
-                    borderRadius: BorderRadius.circular(8),
+                    color: HydroDesign.dangerRed.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
                       const Icon(
-                        Icons.error_outline,
-                        color: Color(0xFFDC2626),
+                        Icons.error_outline_rounded,
+                        color: HydroDesign.dangerRed,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
                           style: const TextStyle(
-                            color: Color(0xFFDC2626),
+                            color: HydroDesign.dangerRed,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -215,7 +216,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _onLoginPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E5C3A),
+                    backgroundColor: HydroDesign.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -256,8 +257,8 @@ class _LoginPageState extends State<LoginPage> {
         Text(
           label,
           style: const TextStyle(
-            color: Color(0xFF1E5C3A),
-            fontWeight: FontWeight.bold,
+            color: HydroDesign.primaryGreen,
+            fontWeight: FontWeight.w800,
             fontSize: 13,
           ),
         ),

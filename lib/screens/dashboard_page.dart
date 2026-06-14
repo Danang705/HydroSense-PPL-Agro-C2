@@ -38,6 +38,19 @@ class _DashboardPageState extends State<DashboardPage>
     return 'Admin';
   }
 
+  String _getGreeting() {
+    final int hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 11) {
+      return 'Selamat Pagi!';
+    } else if (hour >= 11 && hour < 15) {
+      return 'Selamat Siang!';
+    } else if (hour >= 15 && hour < 18) {
+      return 'Selamat Sore!';
+    } else {
+      return 'Selamat Malam!';
+    }
+  }
+
   String _formatPh(double ph) {
     return ph.toStringAsFixed(1);
   }
@@ -184,10 +197,12 @@ class _DashboardPageState extends State<DashboardPage>
                     const SizedBox(height: 16),
                     _buildMqttStatusCard(),
                     const SizedBox(height: 16),
-                    _buildSummaryRow(normalCount, warningCount),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle(),
+                    _buildProgressBanner(normalCount, allMeja.length),
                     const SizedBox(height: 16),
+                    _buildSummaryRow(normalCount, warningCount),
+                    const SizedBox(height: 20),
+                    _buildSectionTitle(),
+                    const SizedBox(height: 12),
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: () async {
@@ -200,7 +215,7 @@ class _DashboardPageState extends State<DashboardPage>
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 children: [
                                   SizedBox(
-                                    height: MediaQuery.of(context).size.height * 0.4,
+                                    height: MediaQuery.of(context).size.height * 0.35,
                                     child: Center(
                                       child: _buildEmptyState(),
                                     ),
@@ -245,30 +260,44 @@ class _DashboardPageState extends State<DashboardPage>
         return Padding(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: HydroDesign.lightGreenBg,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: HydroDesign.primaryGreen,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Halo $displayName',
+                      _getGreeting(),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HydroDesign.grayText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontFamily: 'Nunito',
+                        fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: HydroDesign.darkText,
                         letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Berikut Kondisi Kebun Anda!!!',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: HydroDesign.grayText,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -330,7 +359,7 @@ class _DashboardPageState extends State<DashboardPage>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: HydroDesign.premiumShadow,
             ),
             child: Row(
@@ -391,72 +420,155 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
+  Widget _buildProgressBanner(int normalCount, int totalCount) {
+    final double percent = totalCount > 0 ? (normalCount / totalCount) : 0.0;
+    final int percentInt = (percent * 100).toInt();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: HydroDesign.accentGreenHighlight,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: HydroDesign.premiumShadow,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Kondisi Kebun Mingguan',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: HydroDesign.darkText,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    totalCount > 0
+                        ? '$normalCount dari $totalCount meja pemantauan berfungsi dalam batas normal.'
+                        : 'Menunggu data perangkat untuk analisis.',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: HydroDesign.grayText,
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: CircularProgressIndicator(
+                    value: percent,
+                    strokeWidth: 6,
+                    color: HydroDesign.secondaryGreen,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+                Text(
+                  '$percentInt%',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: HydroDesign.darkText,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSummaryRow(int normal, int warning) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          _buildSummaryCard(
+          _buildSummaryGridCard(
             count: normal,
-            label: 'Normal',
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E5C3A), Color(0xFF2D7A50)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            label: 'Meja Normal',
+            bgColor: const Color(0xFFF1F8E9),
+            icon: Icons.check_circle_outline_rounded,
+            iconColor: HydroDesign.primaryGreen,
           ),
           const SizedBox(width: 16),
-          _buildSummaryCard(
+          _buildSummaryGridCard(
             count: warning,
             label: 'Perlu Perhatian',
-            gradient: const LinearGradient(
-              colors: [Color(0xFFE54D50), Color(0xFFF07173)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            bgColor: HydroDesign.dangerRed.withValues(alpha: 0.08),
+            icon: Icons.warning_amber_rounded,
+            iconColor: HydroDesign.dangerRed,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard({
+  Widget _buildSummaryGridCard({
     required int count,
     required String label,
-    required Gradient gradient,
+    required Color bgColor,
+    required IconData icon,
+    required Color iconColor,
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: gradient,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          boxShadow: HydroDesign.premiumShadow,
         ),
-        child: Column(
+        child: Row(
           children: [
-            Text(
-              '$count',
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: -0.5,
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: iconColor,
+                size: 20,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.white70,
-                fontWeight: FontWeight.w600,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$count',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: HydroDesign.darkText,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: HydroDesign.grayText,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -464,6 +576,8 @@ class _DashboardPageState extends State<DashboardPage>
       ),
     );
   }
+
+
 
   Widget _buildSectionTitle() {
     return const Padding(
@@ -513,7 +627,7 @@ class _DashboardPageState extends State<DashboardPage>
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Pastikan perangkat IoT sudah aktif dan mengirim data ke topic MQTT.',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -533,73 +647,78 @@ class _DashboardPageState extends State<DashboardPage>
     required bool isNormal,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: HydroDesign.premiumShadow,
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                meja.nama,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: HydroDesign.darkText,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isNormal
-                      ? const Color(0xFF00C48C).withValues(alpha: 0.12)
-                      : const Color(0xFFE54D50).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  isNormal ? 'NORMAL' : 'TIDAK NORMAL',
-                  style: TextStyle(
-                    color: isNormal
-                        ? const Color(0xFF00C48C)
-                        : const Color(0xFFE54D50),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 5,
+            height: 52,
+            decoration: BoxDecoration(
+              color: isNormal ? HydroDesign.secondaryGreen : HydroDesign.dangerRed,
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-          const SizedBox(height: 20),
-          _buildDataRow(
-            icon: Icons.eco_outlined,
-            label: 'pH Air',
-            value: _formatPh(meja.ph),
-            color: HydroDesign.primaryGreen,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      meja.nama,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: HydroDesign.darkText,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isNormal
+                            ? HydroDesign.lightGreenBg
+                            : HydroDesign.dangerRed.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isNormal ? 'NORMAL' : 'PERHATIAN',
+                        style: TextStyle(
+                          color: isNormal
+                              ? HydroDesign.primaryGreen
+                              : HydroDesign.dangerRed,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _buildCompactParam(Icons.eco_outlined, _formatPh(meja.ph), 'pH', HydroDesign.primaryGreen),
+                    const SizedBox(width: 12),
+                    _buildCompactParam(Icons.opacity_outlined, '${meja.nutrisi}', 'PPM', HydroDesign.infoTeal),
+                    const SizedBox(width: 12),
+                    _buildCompactParam(Icons.local_drink_outlined, '${meja.volume}', 'cm', HydroDesign.warningOrange),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          _buildDataRow(
-            icon: Icons.opacity_outlined,
-            label: 'Nutrisi',
-            value: '${meja.nutrisi} PPM',
-            color: HydroDesign.infoTeal,
-          ),
-          const SizedBox(height: 12),
-          _buildDataRow(
-            icon: Icons.local_drink_outlined,
-            label: 'Volume',
-            value: '${meja.volume} cm',
-            color: HydroDesign.warningOrange,
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(width: 12),
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -610,33 +729,16 @@ class _DashboardPageState extends State<DashboardPage>
               );
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: 12,
-                horizontal: 16,
+              width: 38,
+              height: 38,
+              decoration: const BoxDecoration(
+                color: HydroDesign.lightGreenBg,
+                shape: BoxShape.circle,
               ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.06),
-                ),
-                color: HydroDesign.lightGreenBg.withValues(alpha: 0.3),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Lihat Detail',
-                    style: TextStyle(
-                      color: HydroDesign.primaryGreen,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: HydroDesign.primaryGreen,
-                  ),
-                ],
+              child: const Icon(
+                Icons.chevron_right_rounded,
+                color: HydroDesign.primaryGreen,
+                size: 20,
               ),
             ),
           ),
@@ -645,42 +747,30 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  Widget _buildDataRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
+  Widget _buildCompactParam(IconData icon, String value, String unit, Color color) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 18,
-          ),
+        Icon(
+          icon,
+          size: 14,
+          color: color,
         ),
-        const SizedBox(width: 12),
-        Text(
-          label,
-          style: const TextStyle(
-            color: HydroDesign.grayText,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const Spacer(),
+        const SizedBox(width: 4),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: FontWeight.w900,
             color: HydroDesign.darkText,
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          unit,
+          style: const TextStyle(
+            fontSize: 9,
+            color: HydroDesign.grayText,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
@@ -700,4 +790,4 @@ class _DashboardDeviceSetting {
     required this.ppmMin,
     required this.ppmMax,
   });
-}
+}

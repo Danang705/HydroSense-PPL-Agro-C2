@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+import 'hydro_design.dart';
+
 class CircularSensorGauge extends StatelessWidget {
   final double value;
   final double min;
@@ -42,7 +44,7 @@ class CircularSensorGauge extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF1E3A34),
+                  color: HydroDesign.darkText,
                   letterSpacing: -0.5,
                 ),
               ),

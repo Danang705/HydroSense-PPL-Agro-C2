@@ -196,13 +196,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEE2E2),
+                        color: HydroDesign.dangerRed.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         _errorMessage!,
                         style: const TextStyle(
-                          color: Color(0xFFDC2626),
+                          color: HydroDesign.dangerRed,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import '../widgets/hydro_design.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -114,7 +115,7 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F5),
+      backgroundColor: HydroDesign.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +129,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF1E5C3A),
+                        color: HydroDesign.primaryGreen,
                       ),
                     );
                   }
@@ -144,7 +145,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   }
 
                   return RefreshIndicator(
-                    color: const Color(0xFF1E5C3A),
+                    color: HydroDesign.primaryGreen,
                     onRefresh: _refreshHistory,
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -174,15 +175,15 @@ class _HistoryPageState extends State<HistoryPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF1A1A2E),
+              color: HydroDesign.darkText,
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          const Text(
             'Pusat audit rekam jejak untuk analisis performa.',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey[600],
+              color: HydroDesign.grayText,
             ),
           ),
         ],
@@ -192,7 +193,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
   Widget _buildSearchField() {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: TextField(
         controller: _searchController,
         onChanged: (value) {
@@ -200,27 +201,9 @@ class _HistoryPageState extends State<HistoryPage> {
             _keyword = value;
           });
         },
-        decoration: InputDecoration(
+        decoration: HydroDesign.inputStyle(
           hintText: 'Cari Riwayat',
-          prefixIcon: const Icon(
-            Icons.search,
-            color: Colors.grey,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(
-              color: Colors.grey.shade200,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(
-              color: Colors.grey.shade200,
-            ),
-          ),
+          prefixIcon: Icons.search,
         ),
       ),
     );
@@ -242,7 +225,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
-                    color: Color(0xFF1E5C3A),
+                    color: HydroDesign.primaryGreen,
                   ),
                 ),
               ),
@@ -266,10 +249,8 @@ class _HistoryPageState extends State<HistoryPage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.grey.shade200,
-              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: HydroDesign.premiumShadow,
             ),
             child: Column(
               children: [
@@ -322,7 +303,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
-                  color: Colors.grey,
+                  color: HydroDesign.grayText,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -332,7 +313,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A2E),
+                  color: HydroDesign.darkText,
                 ),
               ),
             ],

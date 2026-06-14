@@ -8,6 +8,7 @@ import 'screens/forgot_password_page.dart';
 import 'screens/login_page.dart';
 import 'screens/main_screen.dart';
 import 'screens/splash_screen.dart';
+import 'widgets/hydro_design.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,7 @@ Future<void> main() async {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: const Color(0xFFF4F6F5),
+        backgroundColor: HydroDesign.background,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -58,9 +59,9 @@ class HydroSenseApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1E5C3A),
+          seedColor: HydroDesign.primaryGreen,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF4F6F5),
+        scaffoldBackgroundColor: HydroDesign.background,
       ),
       initialRoute: '/',
       routes: {

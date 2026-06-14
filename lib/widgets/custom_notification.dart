@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'hydro_design.dart';
 
 class HydroNotification {
   /// Menampilkan dialog sukses yang teranimasi (Scale Transition).
@@ -55,12 +56,12 @@ class HydroNotification {
                     width: 72,
                     height: 72,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE6F2F0),
+                      color: HydroDesign.lightGreenBg,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.check_circle_rounded,
-                      color: Color(0xFF1E5C3A),
+                      color: HydroDesign.primaryGreen,
                       size: 44,
                     ),
                   ),
@@ -71,7 +72,7 @@ class HydroNotification {
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A2E),
+                      color: HydroDesign.darkText,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -94,7 +95,7 @@ class HydroNotification {
                         if (onConfirm != null) onConfirm();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E5C3A),
+                        backgroundColor: HydroDesign.primaryGreen,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -159,12 +160,12 @@ class HydroNotification {
                     width: 68,
                     height: 68,
                     decoration: BoxDecoration(
-                      color: isDestructive ? const Color(0xFFFEE2E2) : const Color(0xFFE6F2F0),
+                      color: isDestructive ? HydroDesign.dangerRed.withValues(alpha: 0.1) : HydroDesign.lightGreenBg,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       isDestructive ? Icons.warning_amber_rounded : Icons.help_outline_rounded,
-                      color: isDestructive ? const Color(0xFFE54D50) : const Color(0xFF1E5C3A),
+                      color: isDestructive ? HydroDesign.dangerRed : HydroDesign.primaryGreen,
                       size: 38,
                     ),
                   ),
@@ -175,7 +176,7 @@ class HydroNotification {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A2E),
+                      color: HydroDesign.darkText,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -215,7 +216,7 @@ class HydroNotification {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isDestructive ? const Color(0xFFE54D50) : const Color(0xFF1E5C3A),
+                            backgroundColor: isDestructive ? HydroDesign.dangerRed : HydroDesign.primaryGreen,
                             foregroundColor: Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -277,8 +278,8 @@ class HydroNotification {
             ],
             border: Border.all(
               color: isSuccess 
-                  ? const Color(0xFF1E5C3A).withValues(alpha: 0.15) 
-                  : const Color(0xFFE54D50).withValues(alpha: 0.15),
+                  ? HydroDesign.primaryGreen.withValues(alpha: 0.15) 
+                  : HydroDesign.dangerRed.withValues(alpha: 0.15),
               width: 1.2,
             ),
           ),
@@ -287,12 +288,12 @@ class HydroNotification {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: isSuccess ? const Color(0xFFE6F2F0) : const Color(0xFFFEE2E2),
+                  color: isSuccess ? HydroDesign.lightGreenBg : HydroDesign.dangerRed.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon ?? (isSuccess ? Icons.check_rounded : Icons.error_outline_rounded),
-                  color: isSuccess ? const Color(0xFF1E5C3A) : const Color(0xFFE54D50),
+                  color: isSuccess ? HydroDesign.primaryGreen : HydroDesign.dangerRed,
                   size: 18,
                 ),
               ),
@@ -301,7 +302,7 @@ class HydroNotification {
                 child: Text(
                   message,
                   style: const TextStyle(
-                    color: Color(0xFF1A1A2E),
+                    color: HydroDesign.darkText,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),

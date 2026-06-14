@@ -4,6 +4,8 @@ import 'package:hydrosense/screens/dashboard_page.dart';
 import 'package:hydrosense/screens/history_page.dart';
 import 'package:hydrosense/screens/profile_page.dart';
 
+import '../widgets/hydro_design.dart';
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -29,17 +31,19 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
+          color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
             ),
           ],
         ),
         child: BottomNavigationBar(
-          backgroundColor: const Color(0xFF1E5C3A),
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white.withValues(alpha: 0.5),
+          backgroundColor: Colors.white,
+          selectedItemColor: HydroDesign.primaryGreen,
+          unselectedItemColor: HydroDesign.grayText,
           currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
@@ -58,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
               label: 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
+              icon: Icon(Icons.person_rounded),
               label: 'Profile',
             ),
           ],
