@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/custom_notification.dart';
+import '../widgets/hydro_design.dart';
+
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
 
@@ -102,11 +105,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         _isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password berhasil diperbarui'),
-          backgroundColor: Color(0xFF1E5C3A),
-        ),
+      HydroNotification.showFloatingToast(
+        context: context,
+        message: 'Password berhasil diperbarui',
+        isSuccess: true,
+        icon: Icons.lock_outline_rounded,
       );
 
       Navigator.pop(context);
@@ -130,15 +133,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F5),
+      backgroundColor: HydroDesign.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF4F6F5),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF1A1A2E),
+            Icons.arrow_back_ios_new_rounded,
+            color: HydroDesign.darkText,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -146,9 +149,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         title: const Text(
           'Ubah Password',
           style: TextStyle(
-            color: Color(0xFF1A1A2E),
-            fontWeight: FontWeight.w800,
+            color: HydroDesign.darkText,
+            fontWeight: FontWeight.w900,
             fontSize: 18,
+            letterSpacing: -0.5,
           ),
         ),
       ),
@@ -160,25 +164,31 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(26),
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.12),
-                ),
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: HydroDesign.premiumShadow,
               ),
               child: Column(
                 children: [
-                  const Icon(
-                    Icons.lock_reset,
-                    size: 64,
-                    color: Color(0xFF1E5C3A),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.lock_reset_rounded,
+                      size: 54,
+                      color: HydroDesign.primaryGreen,
+                    ),
                   ),
                   const SizedBox(height: 14),
-                  Text(
+                  const Text(
                     'Pastikan password baru mudah diingat namun tetap aman.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: HydroDesign.grayText,
                       fontSize: 13,
+                      fontWeight: FontWeight.w500,
                       height: 1.5,
                     ),
                   ),
@@ -239,12 +249,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _changePassword,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E5C3A),
+                        backgroundColor: HydroDesign.primaryGreen,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 17),
-                        elevation: 0,
+                        shadowColor: HydroDesign.primaryGreen.withValues(alpha: 0.25),
+                        elevation: 6,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                       ),
                       child: _isLoading
@@ -259,7 +270,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           : const Text(
                               'Simpan Password',
                               style: TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
                               ),
                             ),
                     ),
@@ -279,27 +291,40 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     required bool obscureText,
     required VoidCallback onToggle,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: const Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          onPressed: onToggle,
-          icon: Icon(
-            obscureText
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: HydroDesign.grayText,
           ),
         ),
-        filled: true,
-        fillColor: const Color(0xFFF8F9FA),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          obscureText: obscureText,
+          style: const TextStyle(
+            color: HydroDesign.darkText,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: HydroDesign.inputStyle(
+            hintText: 'Masukkan $label',
+            prefixIcon: Icons.lock_outline_rounded,
+            suffixIcon: IconButton(
+              onPressed: onToggle,
+              icon: Icon(
+                obscureText
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: HydroDesign.primaryGreen.withValues(alpha: 0.7),
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

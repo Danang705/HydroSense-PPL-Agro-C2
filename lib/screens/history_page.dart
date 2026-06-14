@@ -278,7 +278,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   iconColor: Colors.red,
                   label: 'DATA SAAT AKSI',
                   value:
-                      'pH: ${log['ph']} | Nutrisi: ${log['nutrisi']} PPM | Volume: ${log['volume']}%',
+                      'pH: ${log['ph']} | Nutrisi: ${log['nutrisi']} PPM | Volume: ${log['volume']} cm',
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),

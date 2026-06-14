@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../widgets/hydro_design.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,6 +15,8 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
+
+  bool _checkingAuth = true;
 
   @override
   void initState() {
@@ -46,6 +51,25 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
+
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    // Tunggu durasi minimal animasi splash agar transisi visual tetap estetik
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    if (!mounted) return;
+
+    if (user != null) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else {
+      setState(() {
+        _checkingAuth = false;
+      });
+    }
   }
 
   @override
@@ -61,8 +85,15 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F7F3),
-      body: SafeArea(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFF0F7F3), Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: SlideTransition(
@@ -111,32 +142,47 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const SizedBox(height: 40),
 
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _goToLogin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E5C3A),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(32),
+                  if (_checkingAuth)
+                    const SizedBox(
+                      height: 58,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF1E5C3A),
                         ),
-                        elevation: 0,
                       ),
-                      child: const Text(
-                        'Masuk',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: HydroDesign.buttonShadow,
+                        ),
+                        child: ElevatedButton(
+                          onPressed: _goToLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1E5C3A),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Masuk',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 48),
-                ],
+                    const SizedBox(height: 48),
+                  ],
+                ),
               ),
             ),
           ),

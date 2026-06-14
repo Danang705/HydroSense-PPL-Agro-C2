@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/custom_notification.dart';
+import '../widgets/hydro_design.dart';
 import '../controllers/dashboard_controller.dart';
 import '../models/monitoring_log.dart';
 import 'detail_page.dart';
@@ -96,8 +98,6 @@ class _DashboardPageState extends State<DashboardPage>
   }
 
   bool _isVolumeNormal(MonitoringLog meja) {
-    // Di DetailPage volume saat ini masih dianggap normal karena belum ada
-    // setting batas volume. Jadi dashboard juga mengikuti DetailPage.
     return true;
   }
 
@@ -155,7 +155,7 @@ class _DashboardPageState extends State<DashboardPage>
     super.build(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F5),
+      backgroundColor: HydroDesign.background,
       body: SafeArea(
         child: StreamBuilder<DatabaseEvent>(
           stream: FirebaseDatabase.instance.ref('device_settings').onValue,
@@ -181,31 +181,48 @@ class _DashboardPageState extends State<DashboardPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     _buildMqttStatusCard(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     _buildSummaryRow(normalCount, warningCount),
                     const SizedBox(height: 24),
                     _buildSectionTitle(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Expanded(
-                      child: allMeja.isEmpty
-                          ? _buildEmptyState()
-                          : ListView.builder(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 24),
-                              itemCount: allMeja.length,
-                              itemBuilder: (context, index) {
-                                final MonitoringLog meja = allMeja[index];
-                                final bool isNormal =
-                                    _isMejaNormal(meja, deviceSettings);
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          _mqttController.reconnect();
+                          await Future.delayed(const Duration(milliseconds: 1000));
+                        },
+                        color: HydroDesign.primaryGreen,
+                        child: allMeja.isEmpty
+                            ? ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: [
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height * 0.4,
+                                    child: Center(
+                                      child: _buildEmptyState(),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                itemCount: allMeja.length,
+                                itemBuilder: (context, index) {
+                                  final MonitoringLog meja = allMeja[index];
+                                  final bool isNormal =
+                                      _isMejaNormal(meja, deviceSettings);
 
-                                return _buildMejaCard(
-                                  meja: meja,
-                                  isNormal: isNormal,
-                                );
-                              },
-                            ),
+                                  return _buildMejaCard(
+                                    meja: meja,
+                                    isNormal: isNormal,
+                                  );
+                                },
+                              ),
+                      ),
                     ),
                   ],
                 );
@@ -240,15 +257,18 @@ class _DashboardPageState extends State<DashboardPage>
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3748),
+                        fontWeight: FontWeight.w900,
+                        color: HydroDesign.darkText,
+                        letterSpacing: -0.5,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       'Berikut Kondisi Kebun Anda!!!',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: HydroDesign.grayText,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -267,13 +287,25 @@ class _DashboardPageState extends State<DashboardPage>
                   _buildCircleIcon(
                     icon: Icons.logout_rounded,
                     onTap: () async {
+                      final bool confirm = await HydroNotification.showConfirmDialog(
+                        context: context,
+                        title: 'Keluar Akun',
+                        message: 'Apakah kamu yakin ingin keluar dari aplikasi?',
+                        confirmText: 'KELUAR',
+                        cancelText: 'BATAL',
+                        isDestructive: true,
+                      );
+
+                      if (!confirm) return;
+
                       await FirebaseAuth.instance.signOut();
                       _mqttController.forceDisconnect();
 
-                      if (!mounted) return;
+                      if (!context.mounted) return;
 
                       Navigator.pushReplacementNamed(context, '/login');
                     },
+                    iconColor: HydroDesign.dangerRed,
                   ),
                 ],
               ),
@@ -295,22 +327,27 @@ class _DashboardPageState extends State<DashboardPage>
 
           return Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: Colors.grey.withValues(alpha: 0.2),
-              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: HydroDesign.premiumShadow,
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.wifi_tethering,
-                  size: 18,
-                  color: Color(0xFF1E5C3A),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.wifi_tethering,
+                    size: 16,
+                    color: HydroDesign.primaryGreen,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     status,
@@ -318,8 +355,8 @@ class _DashboardPageState extends State<DashboardPage>
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF2D3748),
-                      fontWeight: FontWeight.w500,
+                      color: HydroDesign.darkText,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -334,19 +371,21 @@ class _DashboardPageState extends State<DashboardPage>
   Widget _buildCircleIcon({
     required IconData icon,
     required VoidCallback? onTap,
+    Color? iconColor,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.grey[200],
+          color: Colors.white,
           shape: BoxShape.circle,
+          boxShadow: HydroDesign.premiumShadow,
         ),
         child: Icon(
           icon,
           size: 20,
-          color: const Color(0xFF2D3748),
+          color: iconColor ?? HydroDesign.darkText,
         ),
       ),
     );
@@ -360,13 +399,21 @@ class _DashboardPageState extends State<DashboardPage>
           _buildSummaryCard(
             count: normal,
             label: 'Normal',
-            color: const Color(0xFF38714F),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1E5C3A), Color(0xFF2D7A50)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
           const SizedBox(width: 16),
           _buildSummaryCard(
             count: warning,
             label: 'Perlu Perhatian',
-            color: const Color(0xFFE54D50),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFE54D50), Color(0xFFF07173)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
         ],
       ),
@@ -376,31 +423,40 @@ class _DashboardPageState extends State<DashboardPage>
   Widget _buildSummaryCard({
     required int count,
     required String label,
-    required Color color,
+    required Gradient gradient,
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(20),
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
           children: [
             Text(
               '$count',
               style: const TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
                 color: Colors.white,
+                letterSpacing: -0.5,
               ),
             ),
+            const SizedBox(height: 4),
             Text(
               label,
               style: const TextStyle(
                 fontSize: 12,
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -417,15 +473,16 @@ class _DashboardPageState extends State<DashboardPage>
           Icon(
             Icons.layers_outlined,
             size: 20,
-            color: Color(0xFF38714F),
+            color: HydroDesign.primaryGreen,
           ),
           SizedBox(width: 8),
           Text(
             'Status Real-Time Meja',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
+              fontWeight: FontWeight.w900,
+              color: HydroDesign.darkText,
+              letterSpacing: -0.3,
             ),
           ),
         ],
@@ -450,9 +507,9 @@ class _DashboardPageState extends State<DashboardPage>
               'Menunggu data alat...',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.grey,
+                color: HydroDesign.darkText,
                 fontSize: 15,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 8),
@@ -460,7 +517,7 @@ class _DashboardPageState extends State<DashboardPage>
               'Pastikan perangkat IoT sudah aktif dan mengirim data ke topic MQTT.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.grey[500],
+                color: HydroDesign.grayText,
                 fontSize: 13,
                 height: 1.5,
               ),
@@ -481,9 +538,7 @@ class _DashboardPageState extends State<DashboardPage>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.1),
-        ),
+        boxShadow: HydroDesign.premiumShadow,
       ),
       child: Column(
         children: [
@@ -494,7 +549,8 @@ class _DashboardPageState extends State<DashboardPage>
                 meja.nama,
                 style: const TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
+                  color: HydroDesign.darkText,
                 ),
               ),
               Container(
@@ -504,9 +560,9 @@ class _DashboardPageState extends State<DashboardPage>
                 ),
                 decoration: BoxDecoration(
                   color: isNormal
-                      ? const Color(0xFF00C48C).withValues(alpha: 0.1)
-                      : const Color(0xFFE54D50).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                      ? const Color(0xFF00C48C).withValues(alpha: 0.12)
+                      : const Color(0xFFE54D50).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   isNormal ? 'NORMAL' : 'TIDAK NORMAL',
@@ -514,8 +570,9 @@ class _DashboardPageState extends State<DashboardPage>
                     color: isNormal
                         ? const Color(0xFF00C48C)
                         : const Color(0xFFE54D50),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
@@ -526,18 +583,21 @@ class _DashboardPageState extends State<DashboardPage>
             icon: Icons.eco_outlined,
             label: 'pH Air',
             value: _formatPh(meja.ph),
+            color: HydroDesign.primaryGreen,
           ),
           const SizedBox(height: 12),
           _buildDataRow(
             icon: Icons.opacity_outlined,
             label: 'Nutrisi',
             value: '${meja.nutrisi} PPM',
+            color: HydroDesign.infoTeal,
           ),
           const SizedBox(height: 12),
           _buildDataRow(
             icon: Icons.local_drink_outlined,
             label: 'Volume',
-            value: '${meja.volume}%',
+            value: '${meja.volume} cm',
+            color: HydroDesign.warningOrange,
           ),
           const SizedBox(height: 20),
           GestureDetector(
@@ -555,25 +615,26 @@ class _DashboardPageState extends State<DashboardPage>
                 horizontal: 16,
               ),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.2),
+                  color: Colors.grey.withValues(alpha: 0.06),
                 ),
-                color: Colors.transparent,
+                color: HydroDesign.lightGreenBg.withValues(alpha: 0.3),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Lihat Detail',
                     style: TextStyle(
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
+                      color: HydroDesign.primaryGreen,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
                     ),
                   ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: Colors.grey[400],
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: HydroDesign.primaryGreen,
                   ),
                 ],
               ),
@@ -588,20 +649,29 @@ class _DashboardPageState extends State<DashboardPage>
     required IconData icon,
     required String label,
     required String value,
+    required Color color,
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: const Color(0xFF38714F),
-          size: 22,
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: color,
+            size: 18,
+          ),
         ),
         const SizedBox(width: 12),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 16,
+          style: const TextStyle(
+            color: HydroDesign.grayText,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const Spacer(),
@@ -609,8 +679,8 @@ class _DashboardPageState extends State<DashboardPage>
           value,
           style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2D3748),
+            fontWeight: FontWeight.w900,
+            color: HydroDesign.darkText,
           ),
         ),
       ],
@@ -630,4 +700,4 @@ class _DashboardDeviceSetting {
     required this.ppmMin,
     required this.ppmMax,
   });
-}
+}

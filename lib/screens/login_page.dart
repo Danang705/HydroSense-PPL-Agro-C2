@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/custom_notification.dart';
+import '../widgets/hydro_design.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -69,38 +72,12 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = false;
       });
 
-      showDialog(
+      HydroNotification.showSuccessDialog(
         context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: const Text(
-              'Login Berhasil',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E5C3A),
-              ),
-            ),
-            content: const Text('Selamat datang kembali di HydroSense!'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pushReplacementNamed(context, '/dashboard');
-                },
-                child: const Text(
-                  'LANJUT',
-                  style: TextStyle(
-                    color: Color(0xFF1E5C3A),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          );
+        title: 'Login Berhasil',
+        message: 'Selamat datang kembali di HydroSense!',
+        onConfirm: () {
+          Navigator.pushReplacementNamed(context, '/dashboard');
         },
       );
     } on FirebaseAuthException catch (e) {
@@ -129,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F5),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,19 +134,17 @@ class _LoginPageState extends State<LoginPage> {
               _buildInputField(
                 label: 'Email',
                 controller: _emailController,
-                hint: 'Masukkan email',
-                suffixIcon: const Icon(
-                  Icons.email_outlined,
-                  color: Colors.grey,
-                ),
+                hint: 'Masukkan email Anda',
+                prefixIcon: Icons.email_outlined,
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               _buildInputField(
                 label: 'Password',
                 controller: _passwordController,
-                hint: 'Masukkan password',
+                hint: 'Masukkan password Anda',
+                prefixIcon: Icons.lock_outline_rounded,
                 obscureText: _obscurePassword,
                 suffixIcon: GestureDetector(
                   onTap: () {
@@ -179,9 +154,9 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   child: Icon(
                     _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: Colors.grey,
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
+                    color: HydroDesign.primaryGreen.withValues(alpha: 0.6),
                   ),
                 ),
               ),
@@ -232,8 +207,11 @@ class _LoginPageState extends State<LoginPage> {
 
               const SizedBox(height: 24),
 
-              SizedBox(
+              Container(
                 width: double.infinity,
+                decoration: BoxDecoration(
+                  boxShadow: HydroDesign.buttonShadow,
+                ),
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _onLoginPressed,
                   style: ElevatedButton.styleFrom(
@@ -243,6 +221,7 @@ class _LoginPageState extends State<LoginPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(32),
                     ),
+                    elevation: 0,
                   ),
                   child: _isLoading
                       ? const SizedBox(
@@ -267,6 +246,7 @@ class _LoginPageState extends State<LoginPage> {
     required String label,
     required TextEditingController controller,
     required String hint,
+    required IconData prefixIcon,
     bool obscureText = false,
     Widget? suffixIcon,
   }) {
@@ -275,25 +255,26 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.grey),
+          style: const TextStyle(
+            color: Color(0xFF1E5C3A),
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: controller,
-                obscureText: obscureText,
-                decoration: InputDecoration(
-                  hintText: hint,
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-            if (suffixIcon != null) suffixIcon,
-          ],
+        TextField(
+          controller: controller,
+          obscureText: obscureText,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: HydroDesign.inputStyle(
+            hintText: hint,
+            prefixIcon: prefixIcon,
+            suffixIcon: suffixIcon,
+          ),
         ),
-        const Divider(),
       ],
     );
   }

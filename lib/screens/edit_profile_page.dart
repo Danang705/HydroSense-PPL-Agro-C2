@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/custom_notification.dart';
+import '../widgets/hydro_design.dart';
+
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
 
@@ -69,11 +72,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nickname berhasil diperbarui'),
-          backgroundColor: Color(0xFF1E5C3A),
-        ),
+      HydroNotification.showFloatingToast(
+        context: context,
+        message: 'Nickname berhasil diperbarui',
+        isSuccess: true,
+        icon: Icons.badge_outlined,
       );
 
       Navigator.pop(context, true);
@@ -110,15 +113,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F5),
+      backgroundColor: HydroDesign.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF4F6F5),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF1A1A2E),
+            Icons.arrow_back_ios_new_rounded,
+            color: HydroDesign.darkText,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -126,9 +129,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         title: const Text(
           'Edit Nickname',
           style: TextStyle(
-            color: Color(0xFF1A1A2E),
-            fontWeight: FontWeight.w800,
+            color: HydroDesign.darkText,
+            fontWeight: FontWeight.w900,
             fontSize: 18,
+            letterSpacing: -0.5,
           ),
         ),
       ),
@@ -140,24 +144,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(26),
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.12),
-                ),
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: HydroDesign.premiumShadow,
               ),
               child: Column(
                 children: [
                   Container(
                     width: 86,
                     height: 86,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE6F2F0),
+                    decoration: BoxDecoration(
+                      color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.person,
+                      Icons.person_rounded,
                       size: 48,
-                      color: Color(0xFF1E5C3A),
+                      color: HydroDesign.primaryGreen,
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -165,17 +167,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     'Ubah Nickname',
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A2E),
+                      fontWeight: FontWeight.w900,
+                      color: HydroDesign.darkText,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  const Text(
                     'Nickname akan tampil pada halaman dashboard dan profil.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey[600],
+                      color: HydroDesign.grayText,
+                      fontWeight: FontWeight.w500,
                       height: 1.5,
                     ),
                   ),
@@ -210,12 +214,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _saveNickname,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E5C3A),
+                        backgroundColor: HydroDesign.primaryGreen,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 17),
-                        elevation: 0,
+                        shadowColor: HydroDesign.primaryGreen.withValues(alpha: 0.25),
+                        elevation: 6,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                       ),
                       child: _isLoading
@@ -230,7 +235,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           : const Text(
                               'Simpan Nickname',
                               style: TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
                               ),
                             ),
                     ),
@@ -250,32 +256,36 @@ class _EditProfilePageState extends State<EditProfilePage> {
     required String hint,
     required IconData icon,
   }) {
-    return TextField(
-      controller: controller,
-      textInputAction: TextInputAction.done,
-      onSubmitted: (_) {
-        if (!_isLoading) {
-          _saveNickname();
-        }
-      },
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon),
-        filled: true,
-        fillColor: const Color(0xFFF8F9FA),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: Color(0xFF1E5C3A),
-            width: 1.4,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: HydroDesign.grayText,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) {
+            if (!_isLoading) {
+              _saveNickname();
+            }
+          },
+          style: const TextStyle(
+            color: HydroDesign.darkText,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: HydroDesign.inputStyle(
+            hintText: hint,
+            prefixIcon: icon,
+          ),
+        ),
+      ],
     );
   }
 }

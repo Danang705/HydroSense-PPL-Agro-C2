@@ -4,6 +4,10 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
+import '../widgets/custom_notification.dart';
+import '../widgets/circular_sensor_gauge.dart';
+import '../widgets/hydro_design.dart';
+
 import '../controllers/dashboard_controller.dart';
 import '../models/monitoring_log.dart';
 
@@ -143,6 +147,12 @@ class _DetailPageState extends State<DetailPage>
         _isLoadingSetting = false;
       });
     }
+  }
+
+  Future<void> _handleRefresh() async {
+    await _loadSavedSetting();
+    _mqttController.reconnect();
+    await Future.delayed(const Duration(milliseconds: 800));
   }
 
   String _formatInputNumber(double value) {
@@ -346,6 +356,16 @@ class _DetailPageState extends State<DetailPage>
       return;
     }
 
+    final bool confirm = await HydroNotification.showConfirmDialog(
+      context: context,
+      title: 'Jalankan Pompa AB Mix',
+      message: 'Apakah Anda yakin ingin menyalakan pompa manual AB Mix dengan dosis Nutrisi A sebesar $nutrisiADosis ml dan Nutrisi B sebesar $nutrisiBDosis ml?',
+      confirmText: 'YA, JALANKAN',
+      cancelText: 'BATAL',
+    );
+
+    if (!confirm) return;
+
     final Map<String, dynamic> manualAbMixData = {
       'id': widget.meja.nama,
       'device_id': widget.meja.deviceId,
@@ -388,6 +408,16 @@ class _DetailPageState extends State<DetailPage>
       );
       return;
     }
+
+    final bool confirm = await HydroNotification.showConfirmDialog(
+      context: context,
+      title: 'Jalankan Pompa $pumpLabel',
+      message: 'Apakah Anda yakin ingin menyalakan pompa manual $pumpLabel dengan dosis sebesar $dosisMl ml?',
+      confirmText: 'YA, JALANKAN',
+      cancelText: 'BATAL',
+    );
+
+    if (!confirm) return;
 
     final Map<String, dynamic> manualPumpData = {
       'id': widget.meja.nama,
@@ -470,11 +500,12 @@ class _DetailPageState extends State<DetailPage>
   }) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-      ),
+    final bool isSuccess = color != Colors.red;
+
+    HydroNotification.showFloatingToast(
+      context: context,
+      message: message,
+      isSuccess: isSuccess,
     );
   }
 
@@ -502,12 +533,12 @@ class _DetailPageState extends State<DetailPage>
         );
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8F9FA),
+          backgroundColor: HydroDesign.background,
           appBar: AppBar(
             leading: IconButton(
               icon: const Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black,
+                Icons.arrow_back_ios_new_rounded,
+                color: HydroDesign.darkText,
                 size: 20,
               ),
               onPressed: () => Navigator.pop(context),
@@ -515,9 +546,10 @@ class _DetailPageState extends State<DetailPage>
             title: const Text(
               'Manajemen Data Meja',
               style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+                color: HydroDesign.darkText,
+                fontWeight: FontWeight.w900,
                 fontSize: 18,
+                letterSpacing: -0.5,
               ),
             ),
             backgroundColor: Colors.transparent,
@@ -550,14 +582,8 @@ class _DetailPageState extends State<DetailPage>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: HydroDesign.premiumShadow,
       ),
       child: Column(
         children: [
@@ -572,18 +598,20 @@ class _DetailPageState extends State<DetailPage>
                       meja.nama,
                       style: const TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A34),
+                        fontWeight: FontWeight.w900,
+                        color: HydroDesign.primaryGreen,
+                        letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       meja.createdAt.isEmpty
                           ? 'Update terakhir: Baru saja'
                           : 'Update terakhir: ${meja.createdAt}',
                       style: const TextStyle(
-                        color: Colors.grey,
+                        color: HydroDesign.grayText,
                         fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -592,27 +620,27 @@ class _DetailPageState extends State<DetailPage>
               const SizedBox(width: 10),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
+                  horizontal: 12,
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF38B2AC),
-                  borderRadius: BorderRadius.circular(10),
+                  color: HydroDesign.infoTeal.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.wifi,
-                      color: Colors.white,
+                      color: HydroDesign.infoTeal,
                       size: 14,
                     ),
-                    SizedBox(width: 4),
+                    SizedBox(width: 6),
                     Text(
                       'Online',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                        color: HydroDesign.infoTeal,
+                        fontWeight: FontWeight.w900,
                         fontSize: 12,
                       ),
                     ),
@@ -625,8 +653,8 @@ class _DetailPageState extends State<DetailPage>
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F3F2),
-              borderRadius: BorderRadius.circular(15),
+              color: const Color(0xFFECEFF0),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: TabBar(
               controller: _tabController,
@@ -636,13 +664,15 @@ class _DetailPageState extends State<DetailPage>
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 5,
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              labelColor: const Color(0xFF1E3A34),
-              unselectedLabelColor: Colors.grey,
+              labelColor: HydroDesign.primaryGreen,
+              unselectedLabelColor: HydroDesign.grayText,
               indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
               tabs: const [
                 Tab(
                   icon: Icon(Icons.analytics_outlined),
@@ -662,34 +692,59 @@ class _DetailPageState extends State<DetailPage>
     final bool phNormal = _isPhNormal(meja.ph);
     final bool nutrisiNormal = _isNutrisiNormal(meja.nutrisi);
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      children: [
-        _buildIndicatorCard(
-          title: 'PH AIR',
-          value: meja.ph.toStringAsFixed(1),
-          status: phNormal ? 'Normal' : 'Warning',
-          color: phNormal ? Colors.green : Colors.red,
-        ),
-        _buildIndicatorCard(
-          title: 'PPM NUTRISI',
-          value: meja.nutrisi.toString(),
-          status: nutrisiNormal ? 'Normal' : 'Warning',
-          color: nutrisiNormal ? Colors.green : Colors.red,
-        ),
-        _buildIndicatorCard(
-          title: 'VOLUME',
-          value: '${meja.volume.toStringAsFixed(2)} m',
-          status: 'Normal',
-          color: Colors.green,
-        ),
-      ],
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: HydroDesign.primaryGreen,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          const SizedBox(height: 12),
+          _buildIndicatorCard(
+            title: 'PH AIR',
+            gauge: CircularSensorGauge(
+              value: meja.ph,
+              min: 0.0,
+              max: 14.0,
+              unit: 'pH',
+              activeColor: phNormal ? const Color(0xFF38714F) : const Color(0xFFE54D50),
+            ),
+            status: phNormal ? 'Normal' : 'Warning',
+            color: phNormal ? const Color(0xFF38714F) : const Color(0xFFE54D50),
+          ),
+          _buildIndicatorCard(
+            title: 'PPM NUTRISI',
+            gauge: CircularSensorGauge(
+              value: meja.nutrisi.toDouble(),
+              min: 0.0,
+              max: 2000.0,
+              unit: 'PPM',
+              activeColor: nutrisiNormal ? const Color(0xFF38714F) : const Color(0xFFE54D50),
+            ),
+            status: nutrisiNormal ? 'Normal' : 'Warning',
+            color: nutrisiNormal ? const Color(0xFF38714F) : const Color(0xFFE54D50),
+          ),
+          _buildIndicatorCard(
+            title: 'VOLUME',
+            gauge: CircularSensorGauge(
+              value: meja.volume.toDouble(),
+              min: 0.0,
+              max: 100.0,
+              unit: 'cm',
+              activeColor: HydroDesign.infoTeal,
+            ),
+            status: 'Normal',
+            color: const Color(0xFF38714F),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 
   Widget _buildIndicatorCard({
     required String title,
-    required String value,
+    required Widget gauge,
     required String status,
     required Color color,
   }) {
@@ -698,13 +753,8 @@ class _DetailPageState extends State<DetailPage>
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: HydroDesign.premiumShadow,
       ),
       child: Column(
         children: [
@@ -714,8 +764,8 @@ class _DetailPageState extends State<DetailPage>
               Text(
                 'Indikator',
                 style: TextStyle(
-                  color: Colors.grey[400],
-                  fontWeight: FontWeight.bold,
+                  color: HydroDesign.grayText,
+                  fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
               ),
@@ -725,14 +775,14 @@ class _DetailPageState extends State<DetailPage>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  status,
+                  status.toUpperCase(),
                   style: TextStyle(
                     color: color,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                     fontSize: 11,
                   ),
                 ),
@@ -740,20 +790,14 @@ class _DetailPageState extends State<DetailPage>
             ],
           ),
           const SizedBox(height: 15),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 46,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E3A34),
-            ),
-          ),
+          gauge,
+          const SizedBox(height: 10),
           Text(
             title,
-            style: TextStyle(
-              color: Colors.grey[500],
+            style: const TextStyle(
+              color: HydroDesign.grayText,
               fontSize: 11,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
               letterSpacing: 1.2,
             ),
           ),
@@ -767,37 +811,49 @@ class _DetailPageState extends State<DetailPage>
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: HydroDesign.premiumShadow,
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: _isLoadingSetting
+      child: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: HydroDesign.primaryGreen,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(24),
+          child: _isLoadingSetting
             ? const Center(
                 child: Padding(
                   padding: EdgeInsets.all(24),
                   child: CircularProgressIndicator(
-                    color: Color(0xFF1E3A34),
+                    color: HydroDesign.primaryGreen,
                   ),
                 ),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(
-                        Icons.settings_outlined,
-                        color: Color(0xFF1E3A34),
-                        size: 20,
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.settings_outlined,
+                          color: HydroDesign.primaryGreen,
+                          size: 18,
+                        ),
                       ),
-                      SizedBox(width: 10),
-                      Expanded(
+                      const SizedBox(width: 10),
+                      const Expanded(
                         child: Text(
                           'Pengaturan Standar Otomatisasi',
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E3A34),
+                            fontWeight: FontWeight.w900,
+                            color: HydroDesign.darkText,
                           ),
                         ),
                       ),
@@ -820,35 +876,43 @@ class _DetailPageState extends State<DetailPage>
                     unit: 'PPM',
                   ),
                   const SizedBox(height: 26),
-                  const Divider(),
+                  const Divider(color: Color(0xFFECEFF0)),
                   const SizedBox(height: 20),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(
-                        Icons.science_outlined,
-                        color: Color(0xFF1E3A34),
-                        size: 20,
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.science_outlined,
+                          color: HydroDesign.primaryGreen,
+                          size: 18,
+                        ),
                       ),
-                      SizedBox(width: 10),
-                      Expanded(
+                      const SizedBox(width: 10),
+                      const Expanded(
                         child: Text(
                           'Dosis Otomatis Saat Tidak Normal',
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E3A34),
+                            fontWeight: FontWeight.w900,
+                            color: HydroDesign.darkText,
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     'Atur jumlah cairan yang diberikan perangkat ketika nilai sensor berada di luar batas normal.',
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: HydroDesign.grayText,
                       fontSize: 12,
                       height: 1.5,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -893,24 +957,28 @@ class _DetailPageState extends State<DetailPage>
                     child: ElevatedButton(
                       onPressed: _sendSettingToIoT,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E3A34),
+                        backgroundColor: HydroDesign.primaryGreen,
+                        shadowColor: HydroDesign.primaryGreen.withValues(alpha: 0.25),
+                        elevation: 6,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: const Text(
                         'Simpan Standar Ke IoT',
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w900,
                           color: Colors.white,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
                   ),
                 ],
               ),
+        ),
       ),
     );
   }
@@ -919,35 +987,43 @@ class _DetailPageState extends State<DetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(),
+        const Divider(color: Color(0xFFECEFF0)),
         const SizedBox(height: 20),
-        const Row(
+        Row(
           children: [
-            Icon(
-              Icons.water_drop_outlined,
-              color: Color(0xFF1E3A34),
-              size: 20,
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: HydroDesign.primaryGreen.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.water_drop_outlined,
+                color: HydroDesign.primaryGreen,
+                size: 18,
+              ),
             ),
-            SizedBox(width: 10),
-            Expanded(
+            const SizedBox(width: 10),
+            const Expanded(
               child: Text(
                 'Pump Manual',
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A34),
+                  fontWeight: FontWeight.w900,
+                  color: HydroDesign.darkText,
                 ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        Text(
+        const Text(
           'Jalankan pompa secara manual sesuai dosis yang sudah diatur di atas.',
           style: TextStyle(
-            color: Colors.grey[600],
+            color: HydroDesign.grayText,
             fontSize: 12,
             height: 1.5,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 18),
@@ -1004,41 +1080,51 @@ class _DetailPageState extends State<DetailPage>
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         width: double.infinity,
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FA),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.grey.withValues(alpha: 0.18),
+          gradient: const LinearGradient(
+            colors: [HydroDesign.primaryGreen, HydroDesign.secondaryGreen],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: HydroDesign.primaryGreen.withValues(alpha: 0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              color: const Color(0xFF1E3A34),
-              size: 24,
+              color: Colors.white,
+              size: 26,
             ),
             const SizedBox(height: 8),
             Text(
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Color(0xFF1E3A34),
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
+                letterSpacing: 0.5,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey[600],
+              style: const TextStyle(
+                color: Colors.white70,
                 fontWeight: FontWeight.w600,
-                fontSize: 11,
+                fontSize: 12,
               ),
             ),
           ],
@@ -1063,8 +1149,8 @@ class _DetailPageState extends State<DetailPage>
             vertical: 6,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFFE6F2F0),
-            borderRadius: BorderRadius.circular(8),
+            color: HydroDesign.lightGreenBg,
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1072,15 +1158,15 @@ class _DetailPageState extends State<DetailPage>
               Icon(
                 icon,
                 size: 14,
-                color: const Color(0xFF1E3A34),
+                color: HydroDesign.primaryGreen,
               ),
               const SizedBox(width: 6),
               Text(
                 title,
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
                   fontSize: 11,
-                  color: Color(0xFF1E3A34),
+                  color: HydroDesign.primaryGreen,
                 ),
               ),
             ],
@@ -1126,8 +1212,8 @@ class _DetailPageState extends State<DetailPage>
             vertical: 6,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFFE6F2F0),
-            borderRadius: BorderRadius.circular(8),
+            color: HydroDesign.lightGreenBg,
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1135,15 +1221,15 @@ class _DetailPageState extends State<DetailPage>
               Icon(
                 icon,
                 size: 14,
-                color: const Color(0xFF1E3A34),
+                color: HydroDesign.primaryGreen,
               ),
               const SizedBox(width: 6),
               Text(
                 title,
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
                   fontSize: 11,
-                  color: Color(0xFF1E3A34),
+                  color: HydroDesign.primaryGreen,
                 ),
               ),
             ],
@@ -1152,20 +1238,30 @@ class _DetailPageState extends State<DetailPage>
         const SizedBox(height: 8),
         Text(
           helper,
-          style: TextStyle(
-            color: Colors.grey[600],
+          style: const TextStyle(
+            color: HydroDesign.grayText,
             fontSize: 11,
             height: 1.4,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 8),
-        _inputBox(
+        _incrementDecrementInputBox(
           label: 'DOSIS',
           controller: controller,
           unit: unit,
+          onDecrement: () => _changeDose(controller, -1),
+          onIncrement: () => _changeDose(controller, 1),
         ),
       ],
     );
+  }
+
+  void _changeDose(TextEditingController controller, int amount) {
+    final int currentVal = int.tryParse(controller.text.trim()) ?? 0;
+    final int newVal = (currentVal + amount).clamp(0, 9999);
+    controller.text = newVal.toString();
+    setState(() {});
   }
 
   Widget _inputBox({
@@ -1180,8 +1276,8 @@ class _DetailPageState extends State<DetailPage>
           label,
           style: const TextStyle(
             fontSize: 9,
-            color: Colors.grey,
-            fontWeight: FontWeight.bold,
+            color: HydroDesign.grayText,
+            fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 6),
@@ -1194,6 +1290,7 @@ class _DetailPageState extends State<DetailPage>
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 15,
+            color: HydroDesign.darkText,
           ),
           decoration: InputDecoration(
             suffixText: unit,
@@ -1207,9 +1304,118 @@ class _DetailPageState extends State<DetailPage>
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.08), width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: HydroDesign.primaryGreen, width: 1.5),
+            ),
           ),
         ),
       ],
     );
   }
-}
+
+  Widget _incrementDecrementInputBox({
+    required String label,
+    required TextEditingController controller,
+    required String unit,
+    required VoidCallback onDecrement,
+    required VoidCallback onIncrement,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9,
+            color: HydroDesign.grayText,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            _buildRoundActionButton(
+              icon: Icons.remove_rounded,
+              onPressed: onDecrement,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textAlign: TextAlign.center,
+                onChanged: (_) {
+                  setState(() {});
+                },
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: HydroDesign.darkText,
+                ),
+                decoration: InputDecoration(
+                  suffixText: unit,
+                  filled: true,
+                  fillColor: const Color(0xFFF8F9FA),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.08), width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: HydroDesign.primaryGreen, width: 1.5),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            _buildRoundActionButton(
+              icon: Icons.add_rounded,
+              onPressed: onIncrement,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRoundActionButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: HydroDesign.lightGreenBg,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: HydroDesign.primaryGreen,
+        ),
+      ),
+    );
+  }
+}

@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/custom_notification.dart';
+import '../widgets/hydro_design.dart';
+
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
 
@@ -66,11 +69,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         _isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tautan reset password telah dikirim ke email kamu.'),
-          backgroundColor: Color(0xFF1E5C3A),
-        ),
+      HydroNotification.showFloatingToast(
+        context: context,
+        message: 'Tautan reset password telah dikirim ke email Anda.',
+        isSuccess: true,
+        icon: Icons.mark_email_read_rounded,
       );
 
       Navigator.pop(context);
@@ -145,61 +148,37 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
               const SizedBox(height: 44),
 
-              Column(
+               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Email',
                     style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
+                      color: Color(0xFF1E5C3A),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
                   ),
 
                   const SizedBox(height: 8),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.done,
-                          onSubmitted: (_) {
-                            if (!_isLoading) {
-                              _onResetPasswordPressed();
-                            }
-                          },
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF1A1A2E),
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Masukkan alamat email',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 15,
-                            ),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.email_outlined,
-                        color: Colors.grey,
-                        size: 20,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  Divider(
-                    color: Colors.grey[300],
-                    thickness: 1.5,
-                    height: 0,
+                  TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) {
+                      if (!_isLoading) {
+                        _onResetPasswordPressed();
+                      }
+                    },
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    decoration: HydroDesign.inputStyle(
+                      hintText: 'Masukkan alamat email Anda',
+                      prefixIcon: Icons.email_outlined,
+                    ),
                   ),
                 ],
               ),
@@ -234,8 +213,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
               const SizedBox(height: 40),
 
-              SizedBox(
+               Container(
                 width: double.infinity,
+                decoration: BoxDecoration(
+                  boxShadow: HydroDesign.buttonShadow,
+                ),
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _onResetPasswordPressed,
                   style: ElevatedButton.styleFrom(

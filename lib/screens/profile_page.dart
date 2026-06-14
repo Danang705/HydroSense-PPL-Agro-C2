@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/custom_notification.dart';
+import '../widgets/hydro_design.dart';
+
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -62,59 +65,23 @@ class _ProfilePageState extends State<ProfilePage> {
     final String? email = user?.email;
 
     if (email == null || email.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email akun tidak ditemukan.'),
-          backgroundColor: Colors.red,
-        ),
+      HydroNotification.showFloatingToast(
+        context: context,
+        message: 'Email akun tidak ditemukan.',
+        isSuccess: false,
       );
       return;
     }
 
-    final bool? confirm = await showDialog<bool>(
+    final bool confirm = await HydroNotification.showConfirmDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: const Text(
-            'Reset Password',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E3A34),
-            ),
-          ),
-          content: Text(
-            'Kirim tautan reset password ke email berikut?\n\n$email',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text(
-                'BATAL',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text(
-                'KIRIM',
-                style: TextStyle(
-                  color: Color(0xFF1E5C3A),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+      title: 'Reset Password',
+      message: 'Apakah kamu yakin ingin mengirim tautan reset password ke email berikut?\n\n$email',
+      confirmText: 'KIRIM',
+      cancelText: 'BATAL',
     );
 
-    if (confirm != true) return;
+    if (!confirm) return;
 
     setState(() {
       _isSendingPasswordReset = true;
@@ -125,31 +92,29 @@ class _ProfilePageState extends State<ProfilePage> {
         email: email.trim(),
       );
 
-      if (!mounted) return;
+      if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Tautan reset password telah dikirim ke $email'),
-          backgroundColor: const Color(0xFF1E5C3A),
-        ),
+      HydroNotification.showFloatingToast(
+        context: context,
+        message: 'Tautan reset password telah dikirim ke $email',
+        isSuccess: true,
+        icon: Icons.mail_outline_rounded,
       );
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_getResetPasswordErrorMessage(e.code)),
-          backgroundColor: Colors.red,
-        ),
+      HydroNotification.showFloatingToast(
+        context: context,
+        message: _getResetPasswordErrorMessage(e.code),
+        isSuccess: false,
       );
     } catch (_) {
-      if (!mounted) return;
+      if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Terjadi kesalahan tidak terduga.'),
-          backgroundColor: Colors.red,
-        ),
+      HydroNotification.showFloatingToast(
+        context: context,
+        message: 'Terjadi kesalahan tidak terduga.',
+        isSuccess: false,
       );
     } finally {
       if (mounted) {
@@ -161,48 +126,16 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _logout(BuildContext context) async {
-    final bool? confirm = await showDialog<bool>(
+    final bool confirm = await HydroNotification.showConfirmDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: const Text(
-            'Keluar Akun',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E3A34),
-            ),
-          ),
-          content: const Text('Apakah kamu yakin ingin keluar dari aplikasi?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text(
-                'BATAL',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text(
-                'KELUAR',
-                style: TextStyle(
-                  color: Color(0xFFE54D50),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+      title: 'Keluar Akun',
+      message: 'Apakah kamu yakin ingin keluar dari aplikasi?',
+      confirmText: 'KELUAR',
+      cancelText: 'BATAL',
+      isDestructive: true,
     );
 
-    if (confirm != true) return;
+    if (!confirm) return;
 
     await FirebaseAuth.instance.signOut();
 
@@ -226,7 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
         final String email = _getEmail(user);
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF4F6F5),
+          backgroundColor: HydroDesign.background,
           body: SafeArea(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
@@ -235,16 +168,18 @@ class _ProfilePageState extends State<ProfilePage> {
                   'Profile',
                   style: TextStyle(
                     fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1A2E),
+                    fontWeight: FontWeight.w900,
+                    color: HydroDesign.darkText,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                const Text(
                   'Kelola informasi akun HydroSense Anda.',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey[600],
+                    color: HydroDesign.grayText,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -254,7 +189,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 24),
                 _buildMenuCard(
-                  icon: Icons.person_outline,
+                  icon: Icons.person_outline_rounded,
                   title: 'Edit Profil',
                   subtitle: 'Ubah nama tampilan akun',
                   onTap: () {
@@ -263,7 +198,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 14),
                 _buildMenuCard(
-                  icon: Icons.lock_reset_outlined,
+                  icon: Icons.lock_reset_rounded,
                   title: _isSendingPasswordReset
                       ? 'Mengirim Tautan...'
                       : 'Reset Password',
@@ -282,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   subtitle: email,
                   onTap: null,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 _buildLogoutButton(context),
               ],
             ),
@@ -299,11 +234,15 @@ class _ProfilePageState extends State<ProfilePage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E5C3A),
+        gradient: const LinearGradient(
+          colors: [HydroDesign.primaryGreen, HydroDesign.secondaryGreen],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E5C3A).withValues(alpha: 0.18),
+            color: HydroDesign.primaryGreen.withValues(alpha: 0.25),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -312,16 +251,23 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         children: [
           Container(
-            width: 68,
-            height: 68,
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
+              color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.person,
-              color: Colors.white,
-              size: 38,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: const BoxDecoration(
+                color: Colors.white24,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.person_rounded,
+                color: Colors.white,
+                size: 36,
+              ),
             ),
           ),
           const SizedBox(width: 18),
@@ -336,17 +282,18 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   email,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 13,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -371,9 +318,7 @@ class _ProfilePageState extends State<ProfilePage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: Colors.grey.withValues(alpha: 0.12),
-          ),
+          boxShadow: HydroDesign.premiumShadow,
         ),
         child: Row(
           children: [
@@ -386,7 +331,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               child: Icon(
                 icon,
-                color: const Color(0xFF1E5C3A),
+                color: HydroDesign.primaryGreen,
               ),
             ),
             const SizedBox(width: 14),
@@ -399,7 +344,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A2E),
+                      color: HydroDesign.darkText,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -407,9 +352,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      color: HydroDesign.grayText,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -421,13 +367,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFF1E5C3A),
+                  color: HydroDesign.primaryGreen,
                 ),
               )
             else if (onTap != null)
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey[400],
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.grey,
               ),
           ],
         ),
@@ -444,16 +390,17 @@ class _ProfilePageState extends State<ProfilePage> {
         label: const Text(
           'Keluar Akun',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.5,
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFE54D50),
+          backgroundColor: HydroDesign.dangerRed,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
           elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(24),
           ),
         ),
       ),
